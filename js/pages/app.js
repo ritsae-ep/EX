@@ -1,11 +1,20 @@
 import { auth } from "../core/firebase.js";
-import { getTodayKey, getWeekKey, getDateAfterDays, isDateExpired } from "../utils/date.js";
+import { 
+  getTodayKey,
+  getWeekKey,
+  getPreviousWeekKey,
+  getDateAfterDays,
+  isDateExpired,
+  isDangerCheckDay
+} from "../utils/date.js";
 
 import {
   getAllMembers,
   getMemberByUid,
   updateMember,
-  listenMembers
+  listenMembers,
+  addWarning,
+  markPenaltyChecked
 } from "../services/memberService.js";
 
 import {
@@ -140,7 +149,10 @@ async function getMembers() {
       realStatus,
       displayStatus,
       weeklyCount,
-      isDanger: realStatus === "normal" && weeklyCount < 3
+      isDanger:
+        isDangerCheckDay() &&
+        realStatus === "normal" &&
+        weeklyCount < 3
     };
   });
 
@@ -166,11 +178,25 @@ showDangerBtn.addEventListener("click",()=>{
 
 function renderMembers(members) {
   memberList.innerHTML = members.map(member => {
+
+    const warningText =
+      member.warningCount > 0
+        ? `<span class="warning">
+             ⚠ 경고 ${member.warningCount}회
+           </span>`
+        : "";
+
     return `
       <li class="${member.isDanger ? "is-danger" : ""}">
         <strong>${member.nickname}</strong>
+
         <span>${member.displayStatus}</span>
-        <span>${member.weeklyCount}/3회</span>
+
+        <span>
+          ${member.weeklyCount}/3회
+        </span>
+
+        ${warningText}
       </li>
     `;
   }).join("");
@@ -214,6 +240,7 @@ onAuthStateChanged(auth, async (user) => {
   }
   
   welcomeText.textContent = `${currentMember.nickname}님 안녕하세요!`;
+  await settleLastWeek();
   listenMembers(getMembers);
   listenWeeklyChecks(getWeekKey(), getMembers);
 
@@ -354,3 +381,49 @@ logoutBtn.addEventListener("click", async()=>{
   await signOut(auth);
   location.href="./login.html";
 });
+
+async function settleLastWeek() {
+  const previousWeekKey = getPreviousWeekKey();
+
+  const members = await getAllMembers();
+  const checks = await getWeeklyChecks(previousWeekKey);
+
+  const countMap = {};
+
+  checks.forEach((check) => {
+    countMap[check.memberId] =
+      (countMap[check.memberId] || 0) + 1;
+  });
+
+  for (const member of members) {
+    if (!member.approved) continue;
+
+    if (member.lastPenaltyWeek === previousWeekKey) {
+      continue;
+    }
+
+    if (member.createdAt) {
+      const createdAt = member.createdAt.toDate();
+
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      if (createdAt > sevenDaysAgo) {
+        await markPenaltyChecked(member.id, previousWeekKey);
+        continue;
+      }
+    }
+
+    const weeklyCount = countMap[member.id] || 0;
+
+    const isExempt =
+      member.status === "busy" ||
+      member.status === "injured";
+
+    if (!isExempt && weeklyCount < 3) {
+      await addWarning(member.id, previousWeekKey);
+    } else {
+      await markPenaltyChecked(member.id, previousWeekKey);
+    }
+  }
+}

@@ -37,3 +37,33 @@ export function isDateExpired(dateKey) {
 
   return today > dateKey;
 }
+
+export function isDangerCheckDay(){
+
+  const day = new Date().getDay();
+
+  // 0 일요일
+  // 1 월요일
+  // ...
+  // 5 금요일
+
+  return day >= 5 || day === 0;
+}
+
+export function getPreviousWeekKey() {
+  const now = new Date();
+
+  now.setDate(now.getDate() - 7);
+
+  const firstDay = new Date(now.getFullYear(), 0, 1);
+
+  const pastDays = Math.floor(
+    (now - firstDay) / 86400000
+  );
+
+  const week = Math.ceil(
+    (pastDays + firstDay.getDay() + 1) / 7
+  );
+
+  return `${now.getFullYear()}-W${week}`;
+}

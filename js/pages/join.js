@@ -7,6 +7,7 @@ import {
 import {
   collection,
   setDoc,
+  doc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
@@ -35,7 +36,9 @@ form.addEventListener("submit", async (e) => {
       statusStartDate: null,
       statusEndDate: null,
       canChangeStatus: true,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      warningCount: 0,
+      lastPenaltyWeek: null
     });
 
     alert("가입 완료! 관리자 승인 후 이용할 수 있습니다.");

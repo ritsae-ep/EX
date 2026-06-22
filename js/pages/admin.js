@@ -104,26 +104,78 @@ onAuthStateChanged(auth, async (user) => {
 
 
 function renderMembers(members){
-   memberList.innerHTML = members.map(member => {
+  memberList.innerHTML = members.map(member => {
+
     const statusText =
       member.status === "normal"
         ? "정상"
         : `${statusLabel[member.status]} ~ ${member.statusEndDate || "종료일 없음"}`;
 
+
+    const warningCount =
+      member.warningCount || 0;
+
+    let warningText = "";
+
+    if (warningCount >= 2) {
+      warningText = `
+        <span class="warning warning--ban">
+          🚨 탈퇴 후보 (${warningCount}회)
+        </span>
+      `;
+    } else if (warningCount === 1) {
+      warningText = `
+        <span class="warning">
+          ⚠ 경고 ${warningCount}회
+        </span>
+      `;
+    }
+
+
     return `
       <li>
         <strong>${member.nickname}</strong>
+
         <span>${statusText}</span>
-        <button class="force-status-btn" data-id="${member.id}" data-status="${member.status}">상태 변경</button>
-        <span>${member.approved ? "승인됨" : "승인 대기"}</span>
+
+        ${warningText}
+
+        ${
+          warningCount > 0
+            ? `<button 
+                class="reset-warning-btn"
+                data-id="${member.id}"
+                data-nickname="${member.nickname}">
+                경고 초기화
+              </button>`
+            : ""
+        }
+
+        <button 
+          class="force-status-btn"
+          data-id="${member.id}"
+          data-status="${member.status}">
+          상태 변경
+        </button>
+
+        <span>
+          ${member.approved ? "승인됨" : "승인 대기"}
+        </span>
 
         ${
           member.approved
             ? ""
-            : `<button class="approve-btn" data-id="${member.id}">승인</button>`
+            : `<button class="approve-btn" data-id="${member.id}">
+                승인
+              </button>`
         }
 
-        <button class="delete-btn" data-id="${member.id}" data-nickname="${member.nickname}">삭제</button>
+        <button 
+          class="delete-btn"
+          data-id="${member.id}"
+          data-nickname="${member.nickname}">
+          삭제
+        </button>
       </li>
     `;
   }).join("");
@@ -146,6 +198,20 @@ memberList.addEventListener("click", async(e)=>{
     selectedMemberId = id;
     adminStatusSelect.value = button.dataset.status || "normal";
     adminStatusModal.classList.add("open");
+    return;
+  }
+
+  if (button.classList.contains("reset-warning-btn")) {
+    const ok = confirm(
+      `${nickname} 회원 경고를 초기화할까요?`
+    );
+
+    if (!ok) return;
+
+    await updateMember(id, {
+      warningCount: 0
+    });
+
     return;
   }
 

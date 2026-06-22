@@ -7,7 +7,8 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
-  onSnapshot
+  onSnapshot,
+  increment
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 export async function getMemberByUid(uid) {
@@ -46,4 +47,17 @@ export async function deleteMember(memberId) {
 
 export function listenMembers(callback) {
   return onSnapshot(collection(db, "members"), callback);
+}
+
+export async function addWarning(memberId, weekKey) {
+  await updateDoc(doc(db, "members", memberId), {
+    warningCount: increment(1),
+    lastPenaltyWeek: weekKey
+  });
+}
+
+export async function markPenaltyChecked(memberId, weekKey) {
+  await updateDoc(doc(db, "members", memberId), {
+    lastPenaltyWeek: weekKey
+  });
 }
