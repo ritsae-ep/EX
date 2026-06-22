@@ -5,7 +5,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
 import {
-  collection,
   setDoc,
   doc,
   serverTimestamp
@@ -25,6 +24,7 @@ form.addEventListener("submit", async (e) => {
 
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
+    const user = result.user;
 
     await setDoc(doc(db, "members", user.uid), {
       uid: user.uid,
