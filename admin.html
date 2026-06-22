@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+</head>
+<body>
+	<header class="header">
+		<h1>관리자 페이지</h1>
+		<div class="header__actions">
+			<a href="./index.html">사용자 화면</a>
+			<button type="button" id="logoutBtn">로그아웃</button>
+		</div>
+	</header>
+	<main>
+		<section>
+			<button id="showAllBtn">전체 회원</button>
+			<button id="showPendingBtn">승인 대기</button>
+			<h2>회원관리</h2>
+			<ul id="memberList"></ul>
+			<div id="adminStatusModal" class="modal">
+				<p id="currentStatusText"></p>
+				<select id="adminStatusSelect">
+					<option value="normal">없음</option>
+					<option value="busy">바쁨</option>
+					<option value="injured">부상</option>
+				</select>
+				<button id="adminSaveStatusBtn">저장</button>
+			</div>
+		</section>
+	</main>
+
+	<script type="module" src="./js/pages/admin.js"></script>
+</body>
+</html>

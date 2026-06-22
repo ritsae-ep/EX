@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="fiction.ep@gmail.com">
+    <meta name="description" content="운동방">
+    <meta name="keywords" content="운동기록">
+	<title>운동기록지</title>
+
+	<link href="./css/style.css">
+</head>
+<body>
+	<header class="header">
+		<strong id="welcomeText"></strong>
+		<button id="adminBtn" style="display:none;">관리자 페이지</button>
+		<button id="logoutBtn">로그아웃</button>
+	</header>
+	<main class="app">
+		<section>
+			<button id="statusBtn">내 상태 변경</button>
+			<div id="statusModal" class="modal">
+				<p id="currentStatusText"></p>
+				<select id="statusSelect">
+					<option value="normal">없음</option>
+					<option value="busy">바쁨</option>
+					<option value="injured">부상</option>
+				</select>
+				<button id="saveStatusBtn">저장</button>
+			</div>
+
+			<button id="checkBtn">운동 기록</button>
+			<div id="checkModal" class="modal">
+				<p id="checkMessage"></p>
+				<button id="saveCheckBtn">오늘 운동 완료</button>
+				<button id="deleteTodayCheckBtn">오늘 최근 기록 삭제</button>
+			</div>
+		</section>
+		<section class="member-section">
+			<div class="filter">
+				<button id="showAllBtn">전체 보기</button>
+				<button id="showDangerBtn">위험 회원만 보기</button>
+				<button id="rankingBtn">운동 랭킹</button>
+			</div>
+			<h2>목록</h2>
+			<ul id="memberList"></ul>
+
+			<!-- 랭킹 -->
+			<div id="rankingModal" class="modal">
+				<div class="modal-content">
+					<h2>🏆 이번 주 운동 랭킹</h2>
+					<ul id="rankingList"></ul>
+					<button id="closeRankingBtn">닫기</button>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<script type="module" src="./js/pages/app.js"></script>
+</body>
+</html>
