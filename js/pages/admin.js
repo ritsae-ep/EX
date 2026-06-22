@@ -22,6 +22,11 @@ import {
   signOut
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
+import {
+  initModalClose
+} from "../utils/modal.js";
+
+
 const logoutBtn = document.querySelector("#logoutBtn");
 const memberList = document.querySelector("#memberList");
 
@@ -39,6 +44,8 @@ const statusLabel = {
   busy: "바쁨",
   injured: "부상"
 };
+
+initModalClose();
 
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);

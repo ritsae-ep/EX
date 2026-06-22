@@ -3,7 +3,9 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title></title>
+	<title>관리자 페이지</title>
+
+	<link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
 	<header class="header">
@@ -20,13 +22,16 @@
 			<h2>회원관리</h2>
 			<ul id="memberList"></ul>
 			<div id="adminStatusModal" class="modal">
-				<p id="currentStatusText"></p>
-				<select id="adminStatusSelect">
-					<option value="normal">없음</option>
-					<option value="busy">바쁨</option>
-					<option value="injured">부상</option>
-				</select>
-				<button id="adminSaveStatusBtn">저장</button>
+				<div class="modal-content">
+					<p id="currentStatusText"></p>
+					<select id="adminStatusSelect">
+						<option value="normal">없음</option>
+						<option value="busy">바쁨</option>
+						<option value="injured">부상</option>
+					</select>
+					<button id="adminSaveStatusBtn">저장</button>
+					<button class="modal-close" data-close-modal>닫기</button>
+				</div>
 			</div>
 		</section>
 	</main>
