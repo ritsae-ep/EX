@@ -25,6 +25,10 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
+import {
+  initModalClose
+} from "../utils/modal.js";
+
 const welcomeText = document.querySelector("#welcomeText");
 const logoutBtn = document.querySelector("#logoutBtn");
 const adminBtn = document.querySelector("#adminBtn");
@@ -64,6 +68,8 @@ const statusLabel = {
   injured: "부상"
 };
 const currentStatusText = document.querySelector("#currentStatusText");
+
+initModalClose();
 
 function renderRanking(){
 
