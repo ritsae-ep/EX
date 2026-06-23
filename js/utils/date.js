@@ -8,14 +8,26 @@ export function getTodayKey() {
   return `${year}-${month}-${date}`;
 }
 
-export function getWeekKey(){
-  const now = new Date();
+function getWeekKeyByDate(date) {
+  const firstDay = new Date(
+    date.getFullYear(),
+    0,
+    1
+  );
 
-  const firstDay = new Date(now.getFullYear(), 0, 1);
-  const pastDays = Math.floor((now - firstDay) / 86400000);
-  const week = Math.ceil((pastDays + firstDay.getDay()+1) / 7);
+  const pastDays = Math.floor(
+    (date - firstDay) / 86400000
+  );
 
-  return `${now.getFullYear()}-W${week}`;
+  const week = Math.ceil(
+    (pastDays + firstDay.getDay() + 1) / 7
+  );
+
+  return `${date.getFullYear()}-W${week}`;
+}
+
+export function getWeekKey() {
+  return getWeekKeyByDate(new Date());
 }
 
 export function getDateAfterDays(days) {
@@ -51,19 +63,29 @@ export function isDangerCheckDay(){
 }
 
 export function getPreviousWeekKey() {
-  const now = new Date();
+  const date = new Date();
 
-  now.setDate(now.getDate() - 7);
+  date.setDate(date.getDate() - 7);
 
-  const firstDay = new Date(now.getFullYear(), 0, 1);
+  return getWeekKeyByDate(date);
+}
 
-  const pastDays = Math.floor(
-    (now - firstDay) / 86400000
-  );
+export function getWeeksOfMonth(year, month) {
+  const weeks = [];
+  const date = new Date(year, month - 1, 1);
 
-  const week = Math.ceil(
-    (pastDays + firstDay.getDay() + 1) / 7
-  );
+  while (date.getMonth() === month - 1) {
+    const weekKey = getWeekKeyByDate(date);
 
-  return `${now.getFullYear()}-W${week}`;
+    if (!weeks.some(item => item.weekKey === weekKey)) {
+      weeks.push({
+        label: `${weeks.length + 1}주차`,
+        weekKey
+      });
+    }
+
+    date.setDate(date.getDate() + 1);
+  }
+
+  return weeks;
 }

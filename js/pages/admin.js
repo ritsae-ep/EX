@@ -1,5 +1,17 @@
 import { auth } from "../core/firebase.js";
-import { getDateAfterDays } from "../utils/date.js";
+
+import {
+  getDateAfterDays
+} from "../utils/date.js";
+
+import {
+  initWeekSelect,
+  updateWeekSelect
+} from "../utils/weekSelect.js";
+
+import {
+  filterMembers
+} from "../utils/filter.js";
 
 import {
   getAllMembers,
@@ -10,7 +22,9 @@ import {
 } from "../services/memberService.js";
 
 import {
-  deleteChecksByMemberId
+  getWeeklyChecks,
+  deleteChecksByMemberId,
+  listenWeeklyChecks
 } from "../services/checkService.js";
 
 import { 
@@ -36,8 +50,10 @@ const adminSaveStatusBtn = document.querySelector("#adminSaveStatusBtn");
 
 const showAllBtn = document.querySelector("#showAllBtn");
 const showPendingBtn = document.querySelector("#showPendingBtn");
+const showBanBtn = document.querySelector("#showBanBtn");
 
 let memberData = [];
+let currentFilter = "all";
 
 const statusLabel = {
   normal: "정상",
@@ -45,7 +61,29 @@ const statusLabel = {
   injured: "부상"
 };
 
+const memberSearchInput = document.querySelector("#memberSearchInput");
+
+const monthInput = document.querySelector("#monthInput");
+const weekSelect = document.querySelector("#weekSelect");
+
+let selectedWeekKey = initWeekSelect(
+  monthInput,
+  weekSelect
+);
+
 initModalClose();
+
+function applyFilters() {
+  const filtered = filterMembers(
+    memberData,
+    {
+      keyword: memberSearchInput.value.trim(),
+      filter: currentFilter
+    }
+  );
+
+  renderMembers(filtered);
+}
 
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
@@ -53,25 +91,55 @@ logoutBtn.addEventListener("click", async () => {
 });
 
 showAllBtn.addEventListener("click", () => {
-  renderMembers(memberData);
+  currentFilter = "all";
+  applyFilters();
 });
 
-
 showPendingBtn.addEventListener("click", () => {
-  const pendingMembers =
-    memberData.filter(member =>
-      !member.approved
-    );
+  currentFilter = "pending";
+  applyFilters();
+});
 
-  renderMembers(pendingMembers);
+showBanBtn.addEventListener("click", () => {
+  currentFilter = "ban";
+  applyFilters();
+});
+
+memberSearchInput.addEventListener("input", () => {
+  applyFilters();
+});
+
+monthInput.addEventListener("change", () => {
+  selectedWeekKey = updateWeekSelect(monthInput, weekSelect);
+  getMembers();
+});
+
+weekSelect.addEventListener("change", () => {
+  selectedWeekKey = weekSelect.value;
+  getMembers();
 });
 
 async function getMembers() {
   const members = await getAllMembers();
+  const checks = await getWeeklyChecks(selectedWeekKey);
 
-  memberData = members;
+  const countMap = {};
 
-  renderMembers(memberData);
+  checks.forEach((check) => {
+    countMap[check.memberId] =
+      (countMap[check.memberId] || 0) + 1;
+  });
+
+  memberData = members.map(member => ({
+    ...member,
+    weeklyCount: countMap[member.id] || 0
+  }));
+
+  memberData.sort((a, b) =>
+    a.nickname.localeCompare(b.nickname, "ko")
+  );
+
+  applyFilters();
 }
 
 
@@ -89,7 +157,6 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   currentAdmin = member;
-
   if (member.role !== "admin") {
     alert("관리자만 접근할 수 있습니다.");
     location.href = "./index.html";
@@ -98,6 +165,7 @@ onAuthStateChanged(auth, async (user) => {
 
   if (!isListening) {
     listenMembers(getMembers);
+    listenWeeklyChecks(selectedWeekKey, getMembers);
     isListening = true;
   }
 });
@@ -137,6 +205,7 @@ function renderMembers(members){
         <strong>${member.nickname}</strong>
 
         <span>${statusText}</span>
+        <span>${member.weeklyCount || 0}/3회</span>
 
         ${warningText}
 
@@ -167,6 +236,17 @@ function renderMembers(members){
             ? ""
             : `<button class="approve-btn" data-id="${member.id}">
                 승인
+              </button>`
+        }
+
+        ${
+          member.role === "admin"
+            ? `<span>관리자</span>`
+            : `<button 
+                class="make-admin-btn"
+                data-id="${member.id}"
+                data-nickname="${member.nickname}">
+                관리자 임명
               </button>`
         }
 
@@ -215,6 +295,18 @@ memberList.addEventListener("click", async(e)=>{
     return;
   }
 
+  if (button.classList.contains("make-admin-btn")) {
+    const ok = confirm(`${nickname} 회원을 관리자로 임명할까요?`);
+
+    if (!ok) return;
+
+    await updateMember(id, {
+      role: "admin"
+    });
+
+    return;
+  }
+
   if(button.classList.contains("approve-btn")){
     await updateMember(id, {
       approved: true
@@ -258,4 +350,3 @@ adminSaveStatusBtn.addEventListener("click", async () => {
 
   alert("관리자 권한으로 상태를 변경했습니다.");
 });
-

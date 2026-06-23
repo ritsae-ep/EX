@@ -1,12 +1,21 @@
 import { auth } from "../core/firebase.js";
-import { 
+import {
   getTodayKey,
   getWeekKey,
   getPreviousWeekKey,
   getDateAfterDays,
   isDateExpired,
-  isDangerCheckDay
+  isDangerCheckDay,
 } from "../utils/date.js";
+
+import {
+  initWeekSelect,
+  updateWeekSelect
+} from "../utils/weekSelect.js";
+
+import {
+  filterMembers
+} from "../utils/filter.js";
 
 import {
   getAllMembers,
@@ -49,6 +58,7 @@ const memberList = document.querySelector("#memberList");
 
 let currentMember = null;
 let memberData = [];
+let isListening = false;
 
 const statusBtn = document.querySelector("#statusBtn");
 const statusModal = document.querySelector("#statusModal");
@@ -78,7 +88,39 @@ const statusLabel = {
 };
 const currentStatusText = document.querySelector("#currentStatusText");
 
+const memberSearchInput = document.querySelector("#memberSearchInput");
+
+const monthInput = document.querySelector("#monthInput");
+const weekSelect = document.querySelector("#weekSelect");
+
+let selectedWeekKey = initWeekSelect(
+  monthInput,
+  weekSelect
+);
+
 initModalClose();
+
+function applyFilters() {
+  const filtered = filterMembers(
+    memberData,
+    {
+      keyword: memberSearchInput.value.trim(),
+      filter: currentFilter
+    }
+  );
+
+  renderMembers(filtered);
+}
+
+monthInput.addEventListener("change", () => {
+  selectedWeekKey = updateWeekSelect(monthInput, weekSelect);
+  getMembers();
+});
+
+weekSelect.addEventListener("change", () => {
+  selectedWeekKey = weekSelect.value;
+  getMembers();
+});
 
 function renderRanking(){
 
@@ -126,7 +168,7 @@ closeRankingBtn.addEventListener("click",()=>{
 
 async function getMembers() {
   const members = await getAllMembers();
-  const checks = await getWeeklyChecks(getWeekKey());
+  const checks = await getWeeklyChecks(selectedWeekKey);
 
   const countMap = {};
 
@@ -164,16 +206,18 @@ async function getMembers() {
   renderMembers(memberData);
 }
 
-showAllBtn.addEventListener("click",()=>{
-  renderMembers(memberData);
+showAllBtn.addEventListener("click", () => {
+  currentFilter = "all";
+  applyFilters();
 });
 
-showDangerBtn.addEventListener("click",()=>{
- const dangerMembers =
-  memberData.filter(member =>
-    member.isDanger
-  );
- renderMembers(dangerMembers);
+showDangerBtn.addEventListener("click", () => {
+  currentFilter = "danger";
+  applyFilters();
+});
+
+memberSearchInput.addEventListener("input", () => {
+  applyFilters();
 });
 
 function renderMembers(members) {
@@ -201,14 +245,9 @@ function renderMembers(members) {
     `;
   }).join("");
 }
+
+
 onAuthStateChanged(auth, async (user) => {
-  let isListening = false;
-  if (!isListening) {
-    listenMembers(getMembers);
-    listenWeeklyChecks(getWeekKey(), getMembers);
-    isListening = true;
-  }
-  
   if (!user) {
     location.href = "./login.html";
     return;
@@ -223,11 +262,9 @@ onAuthStateChanged(auth, async (user) => {
 
   currentMember = member;
 
-  if(currentMember.role === "admin"){
+  if (currentMember.role === "admin") {
     adminBtn.style.display = "block";
   }
-
-  console.log("내 회원 정보:", currentMember);
 
   if (!currentMember.approved) {
     document.body.innerHTML = `
@@ -238,11 +275,16 @@ onAuthStateChanged(auth, async (user) => {
     `;
     return;
   }
-  
+
   welcomeText.textContent = `${currentMember.nickname}님 안녕하세요!`;
+
   await settleLastWeek();
-  listenMembers(getMembers);
-  listenWeeklyChecks(getWeekKey(), getMembers);
+
+  if (!isListening) {
+    listenMembers(getMembers);
+    listenWeeklyChecks(getWeekKey(), getMembers);
+    isListening = true;
+  }
 
   console.log("승인된 회원입니다.");
 });
