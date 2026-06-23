@@ -6,8 +6,11 @@ import {
 export function initWeekSelect(monthInput, weekSelect) {
   const now = new Date();
 
-  monthInput.max =
-    `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+  const currentMonth =
+    `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  monthInput.value = currentMonth;
+  monthInput.max = currentMonth;
 
   const weeks = getWeeksOfMonth(
     now.getFullYear(),
