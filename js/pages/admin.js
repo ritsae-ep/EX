@@ -152,7 +152,7 @@ async function getMembers() {
     weeklyCount:
       countMap[member.id] || 0,
 
-    photoBase64:
+    photos:
       photoMap[member.id] || []
   }));
 
