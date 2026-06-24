@@ -229,7 +229,7 @@ function renderMembers(members){
         <span>${member.weeklyCount || 0}/3회</span>
 
         ${
-          member.photoBase64
+          member.photos.length > 0
             ? `<button
                 class="photo-view-btn"
                 data-id="${member.id}">
