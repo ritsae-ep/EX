@@ -45,6 +45,8 @@ import {
 const logoutBtn = document.querySelector("#logoutBtn");
 const memberList = document.querySelector("#memberList");
 
+const excelDownloadBtn = document.querySelector("#excelDownloadBtn");
+
 const adminStatusModal = document.querySelector("#adminStatusModal");
 const adminStatusSelect = document.querySelector("#adminStatusSelect");
 const adminSaveStatusBtn = document.querySelector("#adminSaveStatusBtn");
@@ -422,4 +424,35 @@ adminSaveStatusBtn.addEventListener("click", async () => {
   adminStatusModal.classList.remove("open");
 
   alert("관리자 권한으로 상태를 변경했습니다.");
+});
+
+excelDownloadBtn.addEventListener("click", () => {
+  const rows = [
+    ["닉네임", "운동횟수"]
+  ];
+
+  memberData.forEach(member => {
+    rows.push([
+      member.nickname,
+      `${member.weeklyCount || 0}회`
+    ]);
+  });
+
+  const csvContent = rows
+    .map(row => row.join(","))
+    .join("\n");
+
+  const blob = new Blob(
+    ["\uFEFF" + csvContent],
+    { type: "text/csv;charset=utf-8;" }
+  );
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${selectedMonth}_${selectedWeekText}_운동기록.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
 });
