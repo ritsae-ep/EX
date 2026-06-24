@@ -406,8 +406,19 @@ saveCheckBtn.addEventListener("click", async()=>{
     return;
   }
 
-  const photoBase64 =
-    await compressImage(file);
+  let photoBase64 = "";
+
+  try {
+    photoBase64 = await compressImage(file);
+  } catch (error) {
+    if (error.message === "IMAGE_TOO_LARGE") {
+      alert("사진 용량이 너무 큽니다. 다른 사진으로 다시 시도해주세요.");
+      return;
+    }
+
+    alert("사진을 처리하지 못했습니다. 다시 시도해주세요.");
+    return;
+  }
 
   await addCheck(
     currentMember,
