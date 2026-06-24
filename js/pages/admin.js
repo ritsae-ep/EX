@@ -291,7 +291,8 @@ function renderMembers(members){
         <button 
           class="delete-btn"
           data-id="${member.id}"
-          data-nickname="${member.nickname}">
+          data-nickname="${member.nickname}"
+          data-role="${member.role}">
           삭제
         </button>
       </li>
@@ -309,6 +310,7 @@ memberList.addEventListener("click", async(e)=>{
 
   const id = button.dataset.id;
   const nickname = button.dataset.nickname;
+  const role = button.dataset.role;
 
   if (!id) return;
 
@@ -382,6 +384,9 @@ memberList.addEventListener("click", async(e)=>{
   } else if (button.classList.contains("delete-btn")) {
     if (id === currentAdmin.id) {
       alert("본인 계정은 삭제할 수 없습니다.");
+      return;
+    } else if (role === "admin") {
+      alert("관리자 계정은 삭제할 수 없습니다")
       return;
     }
     const ok = confirm(`정말 ${nickname} 회원을 삭제할까요?`);
