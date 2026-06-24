@@ -58,6 +58,7 @@ export async function getTodayCheck(memberId, todayKey) {
 export async function addCheck(member, todayKey, weekKey, photoBase64) {
   await addDoc(collection(db,"checks"), {
     memberId: member.id,
+    uid: member.uid,
     nickname: member.nickname,
 
     dateKey: todayKey,
