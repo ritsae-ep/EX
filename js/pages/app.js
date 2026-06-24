@@ -18,6 +18,10 @@ import {
 } from "../utils/filter.js";
 
 import {
+  compressImage
+} from "../utils/image.js";
+
+import {
   getAllMembers,
   getMemberByUid,
   updateMember,
@@ -68,6 +72,7 @@ const saveStatusBtn = document.querySelector("#saveStatusBtn");
 const checkBtn = document.querySelector("#checkBtn");
 const checkModal = document.querySelector("#checkModal");
 const saveCheckBtn = document.querySelector("#saveCheckBtn");
+const checkPhotoInput = document.querySelector("#checkPhotoInput");
 
 const rankingBtn =
   document.querySelector("#rankingBtn");
@@ -379,10 +384,22 @@ saveCheckBtn.addEventListener("click", async()=>{
     return;
   }
 
+  const file =
+  checkPhotoInput.files[0];
+
+  if (!file) {
+    alert("운동 인증 사진을 등록해주세요.");
+    return;
+  }
+
+  const photoBase64 =
+    await compressImage(file);
+
   await addCheck(
     currentMember,
     getTodayKey(),
-    getWeekKey()
+    getWeekKey(),
+    photoBase64
   );
 
   await updateMember(currentMember.id, {

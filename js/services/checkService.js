@@ -12,6 +12,10 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
+import {
+  getDateAfterDays
+} from "../utils/date.js";
+
 export async function getWeeklyChecks(weekKey) {
   const q = query(
     collection(db, "checks"),
@@ -51,14 +55,18 @@ export async function getTodayCheck(memberId, todayKey) {
   };
 }
 
-export async function addCheck(member, todayKey, weekKey) {
-  await addDoc(collection(db, "checks"), {
+export async function addCheck(member, todayKey, weekKey, photoBase64) {
+  await addDoc(collection(db,"checks"), {
     memberId: member.id,
-    uid: member.uid,
     nickname: member.nickname,
-    checkedAt: serverTimestamp(),
+
     dateKey: todayKey,
-    weekKey
+    weekKey,
+
+    photoBase64,
+    photoExpiresAt: getDateAfterDays(14),
+
+    createdAt: serverTimestamp()
   });
 }
 
