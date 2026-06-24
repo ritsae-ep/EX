@@ -56,6 +56,15 @@ export async function addWarning(memberId, weekKey) {
   });
 }
 
+export async function addManualWarning(memberId) {
+  await updateDoc(
+    doc(db, "members", memberId),
+    {
+      warningCount: increment(1)
+    }
+  );
+}
+
 export async function markPenaltyChecked(memberId, weekKey) {
   await updateDoc(doc(db, "members", memberId), {
     lastPenaltyWeek: weekKey

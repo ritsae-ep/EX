@@ -18,7 +18,8 @@ import {
   getMemberByUid,
   updateMember,
   deleteMember,
-  listenMembers
+  listenMembers,
+  addManualWarning
 } from "../services/memberService.js";
 
 import {
@@ -202,7 +203,7 @@ function renderMembers(members){
     if (warningCount >= 2) {
       warningText = `
         <span class="warning warning--ban">
-          🚨 탈퇴 후보 (${warningCount}회)
+          🚨 추방 후보 (${warningCount}회)
         </span>
       `;
     } else if (warningCount === 1) {
@@ -232,6 +233,13 @@ function renderMembers(members){
         }
 
         ${warningText}
+
+        <button 
+          class="add-warning-btn"
+          data-id="${member.id}"
+          data-nickname="${member.nickname}">
+          경고 부여
+        </button>
 
         ${
           warningCount > 0
@@ -308,6 +316,18 @@ memberList.addEventListener("click", async(e)=>{
     selectedMemberId = id;
     adminStatusSelect.value = button.dataset.status || "normal";
     adminStatusModal.classList.add("open");
+    return;
+  }
+
+  if (button.classList.contains("add-warning-btn")) {
+    const ok = confirm(
+      `${nickname} 회원에게 경고를 1회 부여할까요?`
+    );
+
+    if (!ok) return;
+
+    await addManualWarning(id);
+
     return;
   }
 
