@@ -8,11 +8,13 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  deleteField,
   serverTimestamp,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 import {
+  getTodayKey,
   getDateAfterDays
 } from "../utils/date.js";
 
@@ -95,4 +97,25 @@ export function listenWeeklyChecks(weekKey, callback) {
   );
 
   return onSnapshot(q, callback);
+}
+
+export async function cleanupExpiredPhotos() {
+  const checks = await getDocs(collection(db, "checks"));
+  const todayKey = getTodayKey();
+
+  for (const checkDoc of checks.docs) {
+    const check = checkDoc.data();
+
+    if (!check.photoExpiresAt) continue;
+
+    if (check.photoExpiresAt < todayKey) {
+      await updateDoc(
+        doc(db, "checks", checkDoc.id),
+        {
+          photoBase64: deleteField(),
+          photoExpiresAt: deleteField()
+        }
+      );
+    }
+  }
 }

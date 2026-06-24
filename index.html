@@ -36,8 +36,8 @@
 			<div id="checkModal" class="modal">
 				<div class="modal-content">
 					<p id="checkMessage"></p>
-					<button id="saveCheckBtn">오늘 운동 완료</button>
 					<input type="file" id="checkPhotoInput" accept="image/*">
+					<button id="saveCheckBtn">오늘 운동 완료</button>
 					<button id="deleteTodayCheckBtn">오늘 최근 기록 삭제</button>
 					<button class="modal-close" data-close-modal>닫기</button>
 				</div>
@@ -60,6 +60,15 @@
 			</div>
 			<h2>목록</h2>
 			<ul id="memberList"></ul>
+
+			<!-- 사진뷰어 -->
+			<div id="photoModal" class="modal">
+				<div class="modal-content">
+					<h2>운동 인증 사진</h2>
+					<img id="photoPreview" alt="운동 인증 사진" style="max-width:100%;">
+					<button type="button" data-close-modal>닫기</button>
+				</div>
+			</div>
 
 			<!-- 랭킹 -->
 			<div id="rankingModal" class="modal">

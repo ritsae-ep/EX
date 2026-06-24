@@ -48,6 +48,9 @@ const adminStatusModal = document.querySelector("#adminStatusModal");
 const adminStatusSelect = document.querySelector("#adminStatusSelect");
 const adminSaveStatusBtn = document.querySelector("#adminSaveStatusBtn");
 
+const photoModal = document.querySelector("#photoModal");
+const photoPreview = document.querySelector("#photoPreview");
+
 const showAllBtn = document.querySelector("#showAllBtn");
 const showPendingBtn = document.querySelector("#showPendingBtn");
 const showBanBtn = document.querySelector("#showBanBtn");
@@ -124,15 +127,26 @@ async function getMembers() {
   const checks = await getWeeklyChecks(selectedWeekKey);
 
   const countMap = {};
+  const photoMap = {};
 
   checks.forEach((check) => {
     countMap[check.memberId] =
       (countMap[check.memberId] || 0) + 1;
+
+    if (check.photoBase64) {
+      photoMap[check.memberId] =
+        check.photoBase64;
+    }
   });
 
   memberData = members.map(member => ({
     ...member,
-    weeklyCount: countMap[member.id] || 0
+    
+    weeklyCount:
+      countMap[member.id] || 0,
+
+    photoBase64:
+      photoMap[member.id] || null
   }));
 
   memberData.sort((a, b) =>
@@ -207,6 +221,16 @@ function renderMembers(members){
         <span>${statusText}</span>
         <span>${member.weeklyCount || 0}/3회</span>
 
+        ${
+          member.photoBase64
+            ? `<button
+                class="photo-view-btn"
+                data-photo="${member.photoBase64}">
+                📷 사진보기
+              </button>`
+            : ""
+        }
+
         ${warningText}
 
         ${
@@ -273,6 +297,12 @@ memberList.addEventListener("click", async(e)=>{
   const nickname = button.dataset.nickname;
 
   if (!id) return;
+
+  if (button.classList.contains("photo-view-btn")) {
+    photoPreview.src = button.dataset.photo;
+    photoModal.classList.add("open");
+    return;
+  }
 
   if (button.classList.contains("force-status-btn")) {
     selectedMemberId = id;

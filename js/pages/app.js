@@ -35,7 +35,8 @@ import {
   getTodayCheck,
   addCheck,
   deleteCheck,
-  listenWeeklyChecks
+  listenWeeklyChecks,
+  cleanupExpiredPhotos
 } from "../services/checkService.js";
 
 import { 
@@ -74,17 +75,13 @@ const checkModal = document.querySelector("#checkModal");
 const saveCheckBtn = document.querySelector("#saveCheckBtn");
 const checkPhotoInput = document.querySelector("#checkPhotoInput");
 
-const rankingBtn =
-  document.querySelector("#rankingBtn");
+const photoModal = document.querySelector("#photoModal");
+const photoPreview = document.querySelector("#photoPreview");
 
-const rankingModal =
-  document.querySelector("#rankingModal");
-
-const rankingList =
-  document.querySelector("#rankingList");
-
-const closeRankingBtn =
-  document.querySelector("#closeRankingBtn");
+const rankingBtn = document.querySelector("#rankingBtn");
+const rankingModal = document.querySelector("#rankingModal");
+const rankingList = document.querySelector("#rankingList");
+const closeRankingBtn = document.querySelector("#closeRankingBtn");
 
 const statusLabel = {
   normal: "정상",
@@ -176,9 +173,14 @@ async function getMembers() {
   const checks = await getWeeklyChecks(selectedWeekKey);
 
   const countMap = {};
+  const photoMap = {};
 
   checks.forEach((check) => {
     countMap[check.memberId] = (countMap[check.memberId] || 0) + 1;
+
+    if (check.photoBase64) {
+      photoMap[check.memberId] = check.photoBase64;
+    }
   });
 
   const mergedMembers = members.map((member) => {
@@ -196,6 +198,7 @@ async function getMembers() {
       realStatus,
       displayStatus,
       weeklyCount,
+      photoBase64: photoMap[member.id] || null,
       isDanger:
         isDangerCheckDay() &&
         realStatus === "normal" &&
@@ -245,6 +248,16 @@ function renderMembers(members) {
           ${member.weeklyCount}/3회
         </span>
 
+        ${
+          member.photoBase64
+            ? `<button 
+                class="photo-view-btn"
+                data-photo="${member.photoBase64}">
+                📷 사진보기
+              </button>`
+            : ""
+        }
+
         ${warningText}
       </li>
     `;
@@ -283,6 +296,7 @@ onAuthStateChanged(auth, async (user) => {
 
   welcomeText.textContent = `${currentMember.nickname}님 안녕하세요!`;
 
+  await cleanupExpiredPhotos();
   await settleLastWeek();
 
   if (!isListening) {
@@ -486,3 +500,11 @@ async function settleLastWeek() {
     }
   }
 }
+
+memberList.addEventListener("click", (e) => {
+  const button = e.target.closest(".photo-view-btn");
+  if (!button) return;
+
+  photoPreview.src = button.dataset.photo;
+  photoModal.classList.add("open");
+});
