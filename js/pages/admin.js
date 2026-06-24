@@ -50,7 +50,7 @@ const adminStatusSelect = document.querySelector("#adminStatusSelect");
 const adminSaveStatusBtn = document.querySelector("#adminSaveStatusBtn");
 
 const photoModal = document.querySelector("#photoModal");
-const photoPreview = document.querySelector("#photoPreview");
+const photoList = document.querySelector("#photoList");
 
 const showAllBtn = document.querySelector("#showAllBtn");
 const showPendingBtn = document.querySelector("#showPendingBtn");
@@ -135,8 +135,14 @@ async function getMembers() {
       (countMap[check.memberId] || 0) + 1;
 
     if (check.photoBase64) {
-      photoMap[check.memberId] =
-        check.photoBase64;
+      if (!photoMap[check.memberId]) {
+        photoMap[check.memberId] = [];
+      }
+
+      photoMap[check.memberId].push({
+        dateKey: check.dateKey,
+        photo: check.photoBase64
+      });
     }
   });
 
@@ -147,7 +153,7 @@ async function getMembers() {
       countMap[member.id] || 0,
 
     photoBase64:
-      photoMap[member.id] || null
+      photoMap[member.id] || []
   }));
 
   memberData.sort((a, b) =>
@@ -226,8 +232,8 @@ function renderMembers(members){
           member.photoBase64
             ? `<button
                 class="photo-view-btn"
-                data-photo="${member.photoBase64}">
-                📷 사진보기
+                data-id="${member.id}">
+                📷 사진 ${member.photos.length}장
               </button>`
             : ""
         }
@@ -307,7 +313,19 @@ memberList.addEventListener("click", async(e)=>{
   if (!id) return;
 
   if (button.classList.contains("photo-view-btn")) {
-    photoPreview.src = button.dataset.photo;
+    const member = memberData.find(member =>
+      member.id === id
+    );
+
+    photoList.innerHTML = member.photos.map(item => {
+      return `
+        <div class="photo-item">
+          <p>${item.dateKey}</p>
+          <img src="${item.photo}" style="max-width:100%;">
+        </div>
+      `;
+    }).join("");
+
     photoModal.classList.add("open");
     return;
   }
