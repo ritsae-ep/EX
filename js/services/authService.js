@@ -29,7 +29,7 @@ export async function googleLogin(){
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
-            location.href = "./nickname.html";
+            location.href = "./index.html";
             return;
         }
 

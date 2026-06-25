@@ -6,52 +6,69 @@
 	<title>관리자 페이지</title>
 
 	<link rel="stylesheet" href="./css/style.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body class="admin-page">
 	<header class="header">
-		<h1>관리자 페이지</h1>
+		<strong class="header__user">관리자 페이지</strong>
 		<div class="header__actions">
-			<a href="./index.html">사용자 화면</a>
-			<button type="button" id="logoutBtn">로그아웃</button>
+			<a href="./index.html" class="btn">사용자 화면</a>
+			<button id="logoutBtn">로그아웃</button>
 		</div>
 	</header>
-	<main>
-		<section>
-			<button id="showAllBtn">전체 회원</button>
-			<button id="showPendingBtn">승인 대기</button>
-			<button id="showBanBtn">탈퇴 후보</button>
-			<button id="excelDownloadBtn">엑셀 다운로드</button>
-			<input type="search" id="memberSearchInput" placeholder="닉네임 검색">
-			<h2>회원관리</h2>
-			<div class="week-filter">
-				<input type="month" id="monthInput" max="">
-				<select id="weekSelect">
-					<option value="">주차 선택</option>
-				</select>
+	<main class="app">
+		<section class="member-section">
+			<div class="member-section__head">
+				<div class="week-filter">
+					<input type="month" id="monthInput" max="">
+					<select id="weekSelect">
+						<option value=""></option>
+					</select>
+				</div>
+				<div class="search-box">
+					<i class="fa-solid fa-magnifying-glass"></i>
+					<input type="search" id="memberSearchInput" placeholder="닉네임 입력 시 자동 검색">
+				</div>
+				<div class="filter">
+					<button id="showAllBtn">전체</button>
+					<button id="showPendingBtn">승인대기</button>
+					<button id="showBanBtn">추방</button>
+					<button id="excelDownloadBtn">
+						<img src="./img/excel.png" class="btn-icon"> xls
+					</button>
+				</div>
 			</div>
+
 			<ul id="memberList"></ul>
+		</section>
+			
+		<!-- modal -->
+		<div class="modal-group">	
 			<div id="adminStatusModal" class="modal">
 				<div class="modal-content">
-					<p id="currentStatusText"></p>
+					<button type="button" class="modal-close" data-close-modal>
+						<i class="fa-solid fa-xmark"></i>
+   					</button>
+					<p id="adminStatusTitle"></p>
 					<select id="adminStatusSelect">
 						<option value="normal">없음</option>
 						<option value="busy">바쁨</option>
 						<option value="injured">부상</option>
 					</select>
 					<button id="adminSaveStatusBtn">저장</button>
-					<button class="modal-close" data-close-modal>닫기</button>
 				</div>
 			</div>
 
 			<div id="photoModal" class="modal">
 				<div class="modal-content">
+					<button type="button" class="modal-close" data-close-modal>
+						<i class="fa-solid fa-xmark"></i>
+   					</button>
 					<h2>운동 인증 사진</h2>
-					<img id="photoPreview" alt="운동 인증 사진" style="max-width:100%;">
 					<div id="photoList"></div>
-					<button class="modal-close" data-close-modal>닫기</button>
 				</div>
 			</div>
-		</section>
+		</div>
 	</main>
 
 	<script type="module" src="./js/pages/admin.js"></script>

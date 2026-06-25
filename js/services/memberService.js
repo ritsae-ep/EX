@@ -3,12 +3,14 @@ import { db } from "../core/firebase.js";
 import {
   collection,
   doc,
+  setDoc,
   getDoc,
   getDocs,
   updateDoc,
   deleteDoc,
   onSnapshot,
-  increment
+  increment,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 export async function getMemberByUid(uid) {
@@ -68,5 +70,22 @@ export async function addManualWarning(memberId) {
 export async function markPenaltyChecked(memberId, weekKey) {
   await updateDoc(doc(db, "members", memberId), {
     lastPenaltyWeek: weekKey
+  });
+}
+
+export async function createMember(user, nickname) {
+  await setDoc(doc(db, "members", user.uid), {
+    uid: user.uid,
+    email: user.email,
+    nickname,
+    role: "user",
+    approved: false,
+    status: "normal",
+    statusStartDate: null,
+    statusEndDate: null,
+    canChangeStatus: true,
+    warningCount: 0,
+    lastPenaltyWeek: null,
+    createdAt: serverTimestamp()
   });
 }

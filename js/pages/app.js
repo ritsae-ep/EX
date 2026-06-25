@@ -22,12 +22,22 @@ import {
 } from "../utils/image.js";
 
 import {
+  initActiveButtons
+} from "../utils/button.js";
+
+import {
+  statusLabel,
+  getStatusClass
+} from "../utils/status.js";
+
+import {
   getAllMembers,
   getMemberByUid,
   updateMember,
   listenMembers,
   addWarning,
-  markPenaltyChecked
+  markPenaltyChecked,
+  createMember
 } from "../services/memberService.js";
 
 import {
@@ -52,6 +62,10 @@ import {
   initModalClose
 } from "../utils/modal.js";
 
+const nicknameModal = document.querySelector("#nicknameModal");
+const nicknameInput = document.querySelector("#nicknameInput");
+const saveNicknameBtn = document.querySelector("#saveNicknameBtn");
+
 const welcomeText = document.querySelector("#welcomeText");
 const logoutBtn = document.querySelector("#logoutBtn");
 const adminBtn = document.querySelector("#adminBtn");
@@ -61,7 +75,9 @@ const showDangerBtn = document.querySelector("#showDangerBtn");
 
 const memberList = document.querySelector("#memberList");
 
+let pendingUser = null;
 let currentMember = null;
+let currentFilter = "all";
 let memberData = [];
 let isListening = false;
 
@@ -83,11 +99,6 @@ const rankingModal = document.querySelector("#rankingModal");
 const rankingList = document.querySelector("#rankingList");
 const closeRankingBtn = document.querySelector("#closeRankingBtn");
 
-const statusLabel = {
-  normal: "정상",
-  busy: "바쁨",
-  injured: "부상"
-};
 const currentStatusText = document.querySelector("#currentStatusText");
 
 const memberSearchInput = document.querySelector("#memberSearchInput");
@@ -101,6 +112,12 @@ let selectedWeekKey = initWeekSelect(
 );
 
 initModalClose();
+initActiveButtons(".filter");
+
+async function logout() {
+  await signOut(auth);
+  location.href="./login.html";
+}
 
 function applyFilters() {
   const filtered = filterMembers(
@@ -171,6 +188,8 @@ closeRankingBtn.addEventListener("click",()=>{
 async function getMembers() {
   const members = await getAllMembers();
   const checks = await getWeeklyChecks(selectedWeekKey);
+  
+  const isCurrentWeek = selectedWeekKey === getWeekKey();
 
   const countMap = {};
   const photoMap = {};
@@ -190,7 +209,8 @@ async function getMembers() {
       member.status !== "normal" &&
       isDateExpired(member.statusEndDate);
 
-    const realStatus = isStatusExpired ? "normal" : member.status;
+    const realStatus = 
+      isDateExpired(member.statusEndDate) ? "normal" : member.status;
     const displayStatus = statusLabel[realStatus];
 
     return {
@@ -200,9 +220,12 @@ async function getMembers() {
       weeklyCount,
       photoBase64: photoMap[member.id] || null,
       isDanger:
-        isDangerCheckDay() &&
         realStatus === "normal" &&
-        weeklyCount < 3
+        weeklyCount < 3 &&
+        (
+          !isCurrentWeek ||
+          isDangerCheckDay()
+        )
     };
   });
 
@@ -211,7 +234,7 @@ async function getMembers() {
   );
 
   memberData = mergedMembers;
-  renderMembers(memberData);
+  applyFilters();
 }
 
 showAllBtn.addEventListener("click", () => {
@@ -234,7 +257,7 @@ function renderMembers(members) {
     const warningText =
       member.warningCount > 0
         ? `<span class="warning">
-             ⚠ 경고 ${member.warningCount}회
+             <img src="./img/warning.png" class="btn-icon"> ${member.warningCount}회
            </span>`
         : "";
 
@@ -242,22 +265,22 @@ function renderMembers(members) {
       <li class="${member.isDanger ? "is-danger" : ""}">
         <strong>${member.nickname}</strong>
 
-        <span>${member.displayStatus}</span>
+        <span class="${getStatusClass(member.realStatus)}">
+          ${member.displayStatus}
+        </span>
 
         <span>
           ${member.weeklyCount}/3회
+          ${
+            member.photoBase64
+              ? `<button 
+                  class="photo-view-btn"
+                  data-photo="${member.photoBase64}">
+                  <i class="fa-regular fa-image"></i>
+                </button>`
+              : ""
+          }
         </span>
-
-        ${
-          member.photoBase64
-            ? `<button 
-                class="photo-view-btn"
-                data-photo="${member.photoBase64}">
-                📷 사진보기
-              </button>`
-            : ""
-        }
-
         ${warningText}
       </li>
     `;
@@ -274,7 +297,8 @@ onAuthStateChanged(auth, async (user) => {
   const member = await getMemberByUid(user.uid);
 
   if (!member) {
-    location.href = "./nickname.html";
+    pendingUser = user;
+    nicknameModal.classList.add("open");
     return;
   }
 
@@ -286,11 +310,27 @@ onAuthStateChanged(auth, async (user) => {
 
   if (!currentMember.approved) {
     document.body.innerHTML = `
-      <main class="app">
-        <h1>승인 대기중</h1>
-        <p>관리자 승인 후 이용할 수 있습니다.</p>
+      <main class="auth-page">
+        <section class="auth-card">
+          <h1 class="auth-card__title">
+            승인 대기중
+          </h1>
+
+          <p class="auth-card__desc">
+            관리자 승인 후 이용할 수 있습니다.
+          </p>
+
+          <button id="logoutBtn" class="auth-btn">
+            로그아웃
+          </button>
+        </section>
       </main>
     `;
+
+    document
+    .querySelector("#logoutBtn")
+    .addEventListener("click", logout);
+    
     return;
   }
 
@@ -461,10 +501,7 @@ deleteTodayCheckBtn.addEventListener("click", async () => {
   checkModal.classList.remove("open");
 });
 
-logoutBtn.addEventListener("click", async()=>{
-  await signOut(auth);
-  location.href="./login.html";
-});
+logoutBtn.addEventListener("click", logout);
 
 async function settleLastWeek() {
   const previousWeekKey = getPreviousWeekKey();
@@ -518,4 +555,21 @@ memberList.addEventListener("click", (e) => {
 
   photoPreview.src = button.dataset.photo;
   photoModal.classList.add("open");
+});
+
+saveNicknameBtn.addEventListener("click", async () => {
+  if (!pendingUser) return;
+
+  const nickname = nicknameInput.value.trim();
+
+  if (!nickname) {
+    alert("닉네임을 입력해주세요.");
+    return;
+  }
+
+  await createMember(pendingUser, nickname);
+
+  alert("가입 완료! 관리자 승인 후 이용할 수 있습니다.");
+
+  location.reload();
 });

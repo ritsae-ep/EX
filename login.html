@@ -3,21 +3,41 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title></title>
+	<title>로그인</title>
+
+	<link rel="stylesheet" href="./css/style.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
-	<main>
-		<section>
-			<form id="emailLoginForm">
-                <input type="email" id="email" placeholder="이메일">
-                <input type="password" id="password" placeholder="비밀번호">
-                <button type="submit">이메일로 로그인</button>
-            </form>
+	<main class="login-page">
+		<section class="login-card">
+			<h1 class="login-card__title">
+				로그인
+			</h1>
 
-            <button type="button" id="googleLoginBtn">
-                구글로 로그인
-            </button>
-			<a href="./join.html">회원가입</a>
+			<form id="emailLoginForm" class="login-form">
+				<label class="form-field">
+					<i class="fa-regular fa-envelope"></i>
+					<input type="email" id="email" placeholder="이메일">
+				</label>
+
+				<label class="form-field">
+					<i class="fa-solid fa-lock"></i>
+					<input type="password" id="password" placeholder="비밀번호">
+				</label>
+
+				<button type="submit" class="login-btn login-btn--primary">
+					이메일로 로그인
+				</button>
+			</form>
+
+			<button type="button" id="googleLoginBtn" class="login-btn">
+				<img src="./img/google.png" class="btn-icon"> 구글 로그인
+			</button>
+
+			<a href="./join.html" class="login-btn login-btn--link">
+				회원가입
+			</a>
 		</section>
 	</main>
 

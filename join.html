@@ -3,17 +3,41 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title></title>
+	<title>회원가입</title>
+
+	<link rel="stylesheet" href="./css/style.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
-	<main>
-		<section>
-            <form id="joinForm">
-                <input type="email" id="email" placeholder="이메일">
-                <input type="password" id="password" placeholder="비밀번호(6자리 이상)">
-                <input type="text" id="nickname" placeholder="닉네임">
-                <button type="submit">가입하기</button>
-            </form>
+	<main class="auth-page">
+		<section class="auth-card">
+
+			<h1 class="auth-card__title">회원가입</h1>
+
+			<form id="joinForm" class="auth-form">
+				<label class="form-field">
+					<i class="fa-regular fa-envelope"></i>
+					<input type="email" id="email" placeholder="이메일">
+				</label>
+
+				<label class="form-field">
+					<i class="fa-solid fa-lock"></i>
+					<input type="password" id="password" placeholder="비밀번호(6자리 이상)">
+				</label>
+
+				<label class="form-field">
+					<i class="fa-regular fa-user"></i>
+					<input type="text" id="nickname" placeholder="카톡방 닉네임">
+				</label>
+
+				<button type="submit" class="auth-btn auth-btn--primary">
+					가입하기
+				</button>
+			</form>
+
+			<a href="./login.html" class="auth-btn">
+				로그인으로 돌아가기
+			</a>
 		</section>
 	</main>
 

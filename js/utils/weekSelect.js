@@ -19,9 +19,7 @@ export function initWeekSelect(monthInput, weekSelect) {
 
   weekSelect.innerHTML = weeks.map(week => {
     return `
-      <option value="${week.weekKey}">
-        ${week.label}
-      </option>
+      <option value="${week.weekKey}">${week.label}</option>
     `;
   }).join("");
 

@@ -41,6 +41,14 @@ import {
   initModalClose
 } from "../utils/modal.js";
 
+import {
+  initActiveButtons
+} from "../utils/button.js";
+
+import {
+  getStatusText,
+  getStatusClass
+} from "../utils/status.js";
 
 const logoutBtn = document.querySelector("#logoutBtn");
 const memberList = document.querySelector("#memberList");
@@ -48,6 +56,7 @@ const memberList = document.querySelector("#memberList");
 const excelDownloadBtn = document.querySelector("#excelDownloadBtn");
 
 const adminStatusModal = document.querySelector("#adminStatusModal");
+const adminStatusTitle = document.querySelector("#adminStatusTitle");
 const adminStatusSelect = document.querySelector("#adminStatusSelect");
 const adminSaveStatusBtn = document.querySelector("#adminSaveStatusBtn");
 
@@ -61,23 +70,17 @@ const showBanBtn = document.querySelector("#showBanBtn");
 let memberData = [];
 let currentFilter = "all";
 
-const statusLabel = {
-  normal: "정상",
-  busy: "바쁨",
-  injured: "부상"
-};
-
 const memberSearchInput = document.querySelector("#memberSearchInput");
 
 const monthInput = document.querySelector("#monthInput");
 const weekSelect = document.querySelector("#weekSelect");
-
 let selectedWeekKey = initWeekSelect(
   monthInput,
   weekSelect
 );
 
 initModalClose();
+initActiveButtons(".filter");
 
 function applyFilters() {
   const filtered = filterMembers(
@@ -196,11 +199,6 @@ onAuthStateChanged(auth, async (user) => {
 
 function renderMembers(members){
   memberList.innerHTML = members.map(member => {
-    const statusText =
-      member.status === "normal"
-        ? "정상"
-        : `${statusLabel[member.status]} ~ ${member.statusEndDate || "종료일 없음"}`;
-
     const warningCount = member.warningCount || 0;
 
     let warningText = "";
@@ -208,13 +206,19 @@ function renderMembers(members){
     if (warningCount >= 2) {
       warningText = `
         <span class="warning warning--ban">
-          🚨 추방 후보 (${warningCount}회)
+          <img src="./img/ban.png" class="btn-icon"> 추방 후보(${warningCount}회)
         </span>
       `;
     } else if (warningCount === 1) {
       warningText = `
         <span class="warning">
-          ⚠ 경고 ${warningCount}회
+          <img src="./img/warning.png" class="btn-icon"> 경고 ${warningCount}회
+        </span>
+      `;
+    } else {
+      warningText = `
+        <span class="warning warning--none">
+          없음
         </span>
       `;
     }
@@ -223,24 +227,30 @@ function renderMembers(members){
       <li>
         <strong class="member-name">${member.nickname}</strong>
 
-        <span class="member-status">${statusText}</span>
+        <span class="${getStatusClass(member.status)}">
+          ${getStatusText(member)}
+        </span>
 
-        <span class="member-count">${member.weeklyCount || 0}/3회</span>
+        <span class="member-count">
+          ${member.weeklyCount || 0}/3회
+          ${
+            member.photos.length > 0
+              ? `<button
+                  class="photo-view-btn"
+                  data-id="${member.id}">
+                  <i class="fa-regular fa-image"></i>
+                </button>`
+              : ""
+          }
+        </span>
+        
+        
 
         <div class="member-warning">
           ${warningText}
         </div>
 
         <div class="member-actions">
-          ${
-            member.photos.length > 0
-              ? `<button
-                  class="photo-view-btn"
-                  data-id="${member.id}">
-                  📷 사진 ${member.photos.length}장
-                </button>`
-              : ""
-          }
 
           <button 
             class="add-warning-btn"
@@ -263,6 +273,7 @@ function renderMembers(members){
           <button 
             class="force-status-btn"
             data-id="${member.id}"
+            data-nickname="${member.nickname}"
             data-status="${member.status}">
             상태 변경
           </button>
@@ -333,6 +344,7 @@ memberList.addEventListener("click", async(e)=>{
 
   if (button.classList.contains("force-status-btn")) {
     selectedMemberId = id;
+    adminStatusTitle.textContent = `${nickname}님의 상태를 변경합니다`;
     adminStatusSelect.value = button.dataset.status || "normal";
     adminStatusModal.classList.add("open");
     return;
@@ -448,7 +460,19 @@ excelDownloadBtn.addEventListener("click", () => {
 
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${selectedMonth}_${selectedWeekText}_운동기록.csv`;
+
+  const selectedMonth = monthInput.value;
+
+  const selectedWeek = [...weekSelect.options].find(option =>
+    option.value === selectedWeekKey
+  );
+
+  const weekText = selectedWeek
+    ? selectedWeek.textContent.trim()
+    : selectedWeekKey;
+
+  a.download = `${selectedMonth}_${weekText}_운동기록.csv`;
+
   a.click();
 
   URL.revokeObjectURL(url);
