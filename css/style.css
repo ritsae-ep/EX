@@ -199,6 +199,10 @@ select {
   border-color: #15803d;
 }
 
+#checkPhotoInput {
+  margin-bottom: 10px;
+}
+
 /* ===== member section ===== */
 .member-section {
   height: 80vh;
