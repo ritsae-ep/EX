@@ -196,15 +196,12 @@ onAuthStateChanged(auth, async (user) => {
 
 function renderMembers(members){
   memberList.innerHTML = members.map(member => {
-
     const statusText =
       member.status === "normal"
         ? "정상"
         : `${statusLabel[member.status]} ~ ${member.statusEndDate || "종료일 없음"}`;
 
-
-    const warningCount =
-      member.warningCount || 0;
+    const warningCount = member.warningCount || 0;
 
     let warningText = "";
 
@@ -222,81 +219,81 @@ function renderMembers(members){
       `;
     }
 
-
     return `
       <li>
-        <strong>${member.nickname}</strong>
+        <strong class="member-name">${member.nickname}</strong>
 
-        <span>${statusText}</span>
-        <span>${member.weeklyCount || 0}/3회</span>
+        <span class="member-status">${statusText}</span>
 
-        ${
-          member.photos.length > 0
-            ? `<button
-                class="photo-view-btn"
-                data-id="${member.id}">
-                📷 사진 ${member.photos.length}장
-              </button>`
-            : ""
-        }
+        <span class="member-count">${member.weeklyCount || 0}/3회</span>
 
-        ${warningText}
+        <div class="member-warning">
+          ${warningText}
+        </div>
 
-        <button 
-          class="add-warning-btn"
-          data-id="${member.id}"
-          data-nickname="${member.nickname}">
-          경고 부여
-        </button>
+        <div class="member-actions">
+          ${
+            member.photos.length > 0
+              ? `<button
+                  class="photo-view-btn"
+                  data-id="${member.id}">
+                  📷 사진 ${member.photos.length}장
+                </button>`
+              : ""
+          }
 
-        ${
-          warningCount > 0
-            ? `<button 
-                class="reset-warning-btn"
-                data-id="${member.id}"
-                data-nickname="${member.nickname}">
-                경고 초기화
-              </button>`
-            : ""
-        }
+          <button 
+            class="add-warning-btn"
+            data-id="${member.id}"
+            data-nickname="${member.nickname}">
+            경고 부여
+          </button>
 
-        <button 
-          class="force-status-btn"
-          data-id="${member.id}"
-          data-status="${member.status}">
-          상태 변경
-        </button>
+          ${
+            warningCount > 0
+              ? `<button 
+                  class="reset-warning-btn"
+                  data-id="${member.id}"
+                  data-nickname="${member.nickname}">
+                  경고 초기화
+                </button>`
+              : ""
+          }
 
-        <span>
-          ${member.approved ? "승인됨" : "승인 대기"}
-        </span>
+          <button 
+            class="force-status-btn"
+            data-id="${member.id}"
+            data-status="${member.status}">
+            상태 변경
+          </button>
 
-        ${
-          member.approved
-            ? ""
-            : `<button class="approve-btn" data-id="${member.id}">
-                승인
-              </button>`
-        }
+          ${
+            member.approved
+              ? `<span class="approve-label">승인됨</span>`
+              : `<button class="approve-btn" data-id="${member.id}">
+                  승인
+                </button>`
+          }
 
-        ${
-          member.role === "admin"
-            ? `<span>관리자</span>`
-            : `<button 
-                class="make-admin-btn"
-                data-id="${member.id}"
-                data-nickname="${member.nickname}">
-                관리자 임명
-              </button>`
-        }
+          ${
+            member.role === "admin"
+              ? `<span class="role-label">관리자</span>`
+              : `<button 
+                  class="make-admin-btn"
+                  data-id="${member.id}"
+                  data-nickname="${member.nickname}">
+                  관리자 임명
+                </button>`
+          }
 
-        <button 
-          class="delete-btn"
-          data-id="${member.id}"
-          data-nickname="${member.nickname}"
-          data-role="${member.role}">
-          삭제
-        </button>
+          <button 
+            class="delete-btn"
+            data-id="${member.id}"
+            data-nickname="${member.nickname}"
+            data-role="${member.role}">
+            삭제
+          </button>
+        </div>
       </li>
     `;
   }).join("");
