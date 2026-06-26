@@ -36,6 +36,10 @@ body {
   padding: 0 20px;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 /* ===== button ===== */
 button,
 .btn {
@@ -203,6 +207,122 @@ select {
   margin-bottom: 10px;
 }
 
+/* ===== dashboard section ===== */
+.my-dashboard {
+  margin-bottom: 20px;
+  padding: 24px;
+
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, .18);
+}
+
+.my-dashboard__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.my-dashboard__greeting {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.my-dashboard__status {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #2f5be8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.my-dashboard__body {
+  margin-top: 22px;
+}
+
+.my-dashboard__label {
+  margin: 0 0 8px;
+  color: #757575;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.my-dashboard__week,
+.my-dashboard__dots {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.my-dashboard__week {
+  margin-bottom: 8px;
+}
+
+.my-dashboard__week span {
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.my-dashboard__dots span {
+  height: 14px;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.my-dashboard__dots span.is-filled {
+  background: #2f5be8;
+}
+
+.my-dashboard__count {
+  display: block;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.my-dashboard__message {
+  margin: 8px 0 0;
+  color: #475569;
+  font-weight: 700;
+}
+
+.my-dashboard__rule {
+  margin: 6px 0 0;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.my-dashboard__today {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #eef2f7;
+}
+
+.my-dashboard__today p {
+  margin: 0 0 12px;
+  font-weight: 700;
+}
+
+.my-dashboard__main-btn {
+  border-color: #2f5be8;
+  background: #2f5be8;
+  color: #fff;
+}
+
+.my-dashboard__sub-btn {
+  margin-left: 6px;
+}
+
+.my-dashboard__status-btn {
+  margin-top: 14px;
+}
+
 /* ===== member section ===== */
 .member-section {
   height: 80vh;
@@ -212,7 +332,9 @@ select {
 
   background: var(--card);
   border-radius: 12px;
-  overflow: hidden;
+  overflow-y: scroll;
+
+  padding: 0 10px;
 
   box-shadow: 0 16px 40px rgba(15, 23, 42, .18);
 }
@@ -225,9 +347,17 @@ select {
   justify-content: space-between;
   gap: 16px;
 
-  padding: 20px 24px;
+  padding: 20px 0;
 
   border-bottom: 1px solid #eee;
+}
+
+.member-card__hint {
+  display: block;
+  margin-top: 4px;
+  color: #f97316;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .week-filter {
@@ -242,12 +372,6 @@ select {
 .week-filter select {
   flex: 0 1 auto;
   min-width: 0;
-}
-
-.filter {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
 }
 
 /* ===== search ===== */
@@ -348,7 +472,8 @@ select {
 }
 
 #memberList li.is-danger {
-  background: #ffebee;
+  background: #fff7ed;
+  border-color: #fed7aa;
 }
 
 #memberList li.is-danger strong {
@@ -373,27 +498,21 @@ select {
 
   grid-template-columns:
     100px
-    150px
     100px
     150px
-    600px;
+    400px;
 
-  min-width: 1100px;
+  min-width: 750px;
 
   gap: 12px;
 
   border-top: 1px solid #e5e7eb;
 }
 
-.admin-page #memberList li strong {
+.admin-member__info {
   position: sticky;
   left: 0;
-  z-index: 2;
-
-  padding: 15px 10px;
-
-  background: #fff;
-  box-shadow: 8px 0 12px rgba(0, 0, 0, .06);
+  background-color: #fff;
 }
 
 .member-actions {
@@ -404,6 +523,110 @@ select {
 
 .member-actions button {
   white-space: nowrap;
+}
+
+.admin-actions {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 34px;
+  padding: 0 12px;
+
+  border-radius: 10px;
+  border: 1px solid transparent;
+
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-action-btn--primary {
+  background: #2f5be8;
+  color: #fff;
+}
+
+.admin-action-btn--normal {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.admin-action-btn--warning {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.admin-action-btn--danger {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #f87171;
+}
+
+.admin-action-btn--black {
+  background: #111827;
+  color: #fff;
+}
+
+.more-menu {
+  display: none;
+
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+
+  min-width: 140px;
+  padding: 8px;
+
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, .18);
+}
+
+.more-menu.open {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.more-menu hr {
+  width: 100%;
+  margin: 4px 0;
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+
+  margin-left: 6px;
+  padding: 3px 8px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-badge--danger {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.admin-badge--ban {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .member-warning {
@@ -717,15 +940,8 @@ select {
     height: auto;
     padding: 10px;
 
-    flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
-  }
-
-  .header__actions {
-    width: 100%;
-    gap: 5px;
-    overflow-x: auto;
   }
 
   .header__actions button {
@@ -755,6 +971,36 @@ select {
     white-space: nowrap;
   }
 
+  .my-dashboard {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .my-dashboard__head {
+    align-items: flex-start;
+  }
+
+  .my-dashboard__greeting {
+    font-size: 20px;
+  }
+
+  .my-dashboard__dots span {
+    flex: 1;
+    width: auto;
+  }
+
+  .my-dashboard__count {
+    font-size: 24px;
+  }
+
+  .my-dashboard__main-btn,
+  .my-dashboard__sub-btn,
+  .my-dashboard__status-btn {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 8px;
+  }
+
   .member-section {
     height: calc(100vh - 120px);
   }
@@ -762,7 +1008,6 @@ select {
   .member-section__head {
     flex-wrap: wrap;
     gap: 10px;
-    padding: 14px;
   }
 
   .week-filter {
@@ -788,21 +1033,7 @@ select {
     width: 100%;
     min-width: 0;
   }
-
-  .filter {
-    width: 100%;
-
-    display: flex;
-    gap: 5px;
-  }
-
-  .filter button {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 8px 10px;
-    white-space: nowrap;
-  }
-
+  
   #memberList li,
   .admin-page #memberList li {
     gap: 8px;

@@ -19,10 +19,11 @@ import {
   updateMember,
   deleteMember,
   listenMembers,
-  addManualWarning
+  addAdminWarning
 } from "../services/memberService.js";
 
 import {
+  addAdminCheck,
   getWeeklyChecks,
   deleteChecksByMemberId,
   listenWeeklyChecks
@@ -51,6 +52,9 @@ import {
 } from "../utils/status.js";
 
 const logoutBtn = document.querySelector("#logoutBtn");
+
+const dangerMemberList = document.querySelector("#dangerMemberList");
+const pendingMemberList = document.querySelector("#pendingMemberList");
 const memberList = document.querySelector("#memberList");
 
 const excelDownloadBtn = document.querySelector("#excelDownloadBtn");
@@ -60,15 +64,15 @@ const adminStatusTitle = document.querySelector("#adminStatusTitle");
 const adminStatusSelect = document.querySelector("#adminStatusSelect");
 const adminSaveStatusBtn = document.querySelector("#adminSaveStatusBtn");
 
+const adminCheckModal = document.querySelector("#adminCheckModal");
+const adminCheckTitle = document.querySelector("#adminCheckTitle");
+const adminCheckDate = document.querySelector("#adminCheckDate");
+const adminCheckSaveBtn = document.querySelector("#adminCheckSaveBtn");
+
 const photoModal = document.querySelector("#photoModal");
 const photoList = document.querySelector("#photoList");
 
-const showAllBtn = document.querySelector("#showAllBtn");
-const showPendingBtn = document.querySelector("#showPendingBtn");
-const showBanBtn = document.querySelector("#showBanBtn");
-
 let memberData = [];
-let currentFilter = "all";
 
 const memberSearchInput = document.querySelector("#memberSearchInput");
 
@@ -80,42 +84,18 @@ let selectedWeekKey = initWeekSelect(
 );
 
 initModalClose();
-initActiveButtons(".filter");
 
 function applyFilters() {
-  const filtered = filterMembers(
-    memberData,
-    {
-      keyword: memberSearchInput.value.trim(),
-      filter: currentFilter
-    }
-  );
-
-  renderMembers(filtered);
+  renderMembers(memberData);
 }
+
+memberSearchInput.addEventListener("input", () => {
+  applyFilters();
+});
 
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
   location.href = "./login.html";
-});
-
-showAllBtn.addEventListener("click", () => {
-  currentFilter = "all";
-  applyFilters();
-});
-
-showPendingBtn.addEventListener("click", () => {
-  currentFilter = "pending";
-  applyFilters();
-});
-
-showBanBtn.addEventListener("click", () => {
-  currentFilter = "ban";
-  applyFilters();
-});
-
-memberSearchInput.addEventListener("input", () => {
-  applyFilters();
 });
 
 monthInput.addEventListener("change", () => {
@@ -197,126 +177,185 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 
-function renderMembers(members){
-  memberList.innerHTML = members.map(member => {
-    const warningCount = member.warningCount || 0;
+function renderMembers(members) {
+  const keyword = memberSearchInput.value.trim();
 
-    let warningText = "";
+  const searchedMembers = keyword
+    ? filterMembers(members, {
+        keyword,
+        filter: "all"
+      })
+    : members;
 
-    if (warningCount >= 2) {
-      warningText = `
-        <span class="warning warning--ban">
-          <img src="./img/ban.png" class="btn-icon"> 추방 후보(${warningCount}회)
-        </span>
-      `;
-    } else if (warningCount === 1) {
-      warningText = `
-        <span class="warning">
-          <img src="./img/warning.png" class="btn-icon"> 경고 ${warningCount}회
-        </span>
-      `;
-    } else {
-      warningText = `
-        <span class="warning warning--none">
-          없음
-        </span>
-      `;
-    }
+  const dangerMembers = filterMembers(searchedMembers, {
+    filter: "danger"
+  });
 
-    return `
-      <li>
-        <strong class="member-name">${member.nickname}</strong>
+  const banMembers = filterMembers(searchedMembers, {
+    filter: "ban"
+  });
 
-        <span class="${getStatusClass(member.status)}">
-          ${getStatusText(member)}
-        </span>
+  const needCareMembers = [
+    ...dangerMembers,
+    ...banMembers
+  ].filter((member, index, array) =>
+    array.findIndex(item => item.id === member.id) === index
+  );
 
-        <span class="member-count">
-          ${member.weeklyCount || 0}/3회
-          ${
-            member.photos.length > 0
-              ? `<button
-                  class="photo-view-btn"
-                  data-id="${member.id}">
-                  <i class="fa-regular fa-image"></i>
-                </button>`
-              : ""
-          }
-        </span>
-        
-        
+  const pendingMembers = filterMembers(searchedMembers, {
+    filter: "pending"
+  });
 
-        <div class="member-warning">
-          ${warningText}
-        </div>
+  const approvedMembers = searchedMembers.filter(member =>
+    member.approved
+  );
 
-        <div class="member-actions">
+  dangerMemberList.innerHTML =
+    needCareMembers.length
+      ? needCareMembers.map(renderAdminMemberItem).join("")
+      : `<li class="empty">관리 필요한 회원이 없습니다.</li>`;
 
-          <button 
-            class="add-warning-btn"
+  pendingMemberList.innerHTML =
+    pendingMembers.length
+      ? pendingMembers.map(renderAdminMemberItem).join("")
+      : `<li class="empty">승인 요청이 없습니다.</li>`;
+
+  memberList.innerHTML =
+    approvedMembers.length
+      ? approvedMembers.map(renderAdminMemberItem).join("")
+      : `<li class="empty">회원이 없습니다.</li>`;
+}
+
+function renderAdminMemberItem(member) {
+  const statusText = getStatusText(member);
+
+  const dangerBadge =
+    member.isDanger
+      ? `<span class="admin-badge admin-badge--danger">⚠️ 기준 미달</span>`
+      : "";
+
+  const warningText =
+  (member.warningCount || 0) >= 2
+    ? `<span class="warning warning--danger">
+         🔴 경고 ${member.warningCount}회 (추방 후보)
+       </span>`
+    : (member.warningCount || 0) > 0
+      ? `<span class="warning">
+           🟡 경고 ${member.warningCount}회
+         </span>`
+      : "";
+
+  const approveButton =
+    !member.approved
+      ? `<button class="approve-btn" data-id="${member.id}">
+          승인
+        </button>`
+      : "";
+
+   return `
+    <li class="${member.isDanger ? "is-danger" : ""}">
+      <div class="admin-member__info">
+        <strong>${member.nickname}</strong><br>
+        ${dangerBadge}
+        ${warningText}
+      </div>
+
+      <span class="member-count">
+        ${member.weeklyCount}/3회
+        ${
+          member.photos.length > 0
+            ? `<button
+                class="photo-view-btn"
+                data-id="${member.id}">
+                <i class="fa-regular fa-image"></i>
+              </button>`
+            : ""
+        }
+      </span>
+
+      <span class="${getStatusClass(member.status)}">
+        ${statusText}
+      </span>
+
+      <div class="admin-actions">
+        ${approveButton}
+
+        <button
+          class="admin-check-btn admin-action-btn admin-action-btn--primary"
+          data-id="${member.id}"
+          data-nickname="${member.nickname}">
+          인증 추가
+        </button>
+
+        <button
+          class="force-status-btn admin-action-btn admin-action-btn--normal"
+          data-id="${member.id}"
+          data-nickname="${member.nickname}"
+          data-status="${member.status}">
+          상태 변경
+        </button>
+
+        <button
+          type="button"
+          class="more-btn admin-action-btn admin-action-btn--normal">
+          ⋮ 관리
+        </button>
+
+        <div class="more-menu">
+          <button
+            class="add-warning-btn admin-action-btn admin-action-btn--warning"
             data-id="${member.id}"
             data-nickname="${member.nickname}">
             경고 부여
           </button>
 
-          ${
-            warningCount > 0
-              ? `<button 
-                  class="reset-warning-btn"
-                  data-id="${member.id}"
-                  data-nickname="${member.nickname}">
-                  경고 초기화
-                </button>`
-              : ""
-          }
-
-          <button 
-            class="force-status-btn"
+          <button
+            class="reset-warning-btn admin-action-btn admin-action-btn--warning"
             data-id="${member.id}"
-            data-nickname="${member.nickname}"
-            data-status="${member.status}">
-            상태 변경
+            data-nickname="${member.nickname}">
+            경고 초기화
           </button>
 
-          ${
-            member.approved
-              ? `<span class="approve-label">승인됨</span>`
-              : `<button class="approve-btn" data-id="${member.id}">
-                  승인
-                </button>`
-          }
+          <hr>
 
-          ${
-            member.role === "admin"
-              ? `<span class="role-label">관리자</span>`
-              : `<button 
-                  class="make-admin-btn"
-                  data-id="${member.id}"
-                  data-nickname="${member.nickname}">
-                  관리자 임명
-                </button>`
-          }
-
-          <button 
-            class="delete-btn"
+          <button
+            class="delete-btn admin-action-btn admin-action-btn--danger"
             data-id="${member.id}"
             data-nickname="${member.nickname}"
             data-role="${member.role}">
-            삭제
+            회원 삭제
+          </button>
+
+          <button
+            class="make-admin-btn admin-action-btn admin-action-btn--black"
+            data-id="${member.id}"
+            data-nickname="${member.nickname}">
+            관리자 임명
           </button>
         </div>
-      </li>
-    `;
-  }).join("");
+      </div>
+    </li>
+  `;
 }
 
 let selectedMemberId = null;
 let currentAdmin = null;
 let isListening = false;
+let selectedadminCheckMember = null;
 
-memberList.addEventListener("click", async(e)=>{
+
+function handleAdminListClick(e) {
+  handleAdminAction(e);
+}
+
+dangerMemberList.addEventListener("click", handleAdminListClick);
+pendingMemberList.addEventListener("click", handleAdminListClick);
+memberList.addEventListener("click", handleAdminListClick);
+
+
+async function handleAdminAction(e) {
   const button = e.target.closest("button");
-  if(!button) return;
+  if (!button) return;
 
   const id = button.dataset.id;
   const nickname = button.dataset.nickname;
@@ -350,6 +389,28 @@ memberList.addEventListener("click", async(e)=>{
     return;
   }
 
+  if (button.classList.contains("admin-check-btn")) {
+    selectedadminCheckMember = {
+      id,
+      nickname
+    };
+
+    adminCheckTitle.textContent = `${nickname}님의 인증을 추가합니다`;
+
+    const today = new Date();
+    const todayKey = today.toISOString().slice(0, 10);
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    adminCheckDate.value = todayKey;
+    adminCheckDate.max = todayKey;
+    adminCheckDate.min = sevenDaysAgo.toISOString().slice(0, 10);
+
+    adminCheckModal.classList.add("open");
+    return;
+  }
+
   if (button.classList.contains("add-warning-btn")) {
     const ok = confirm(
       `${nickname} 회원에게 경고를 1회 부여할까요?`
@@ -357,7 +418,7 @@ memberList.addEventListener("click", async(e)=>{
 
     if (!ok) return;
 
-    await addManualWarning(id);
+    await addAdminWarning(id);
 
     return;
   }
@@ -407,7 +468,7 @@ memberList.addEventListener("click", async(e)=>{
     await deleteChecksByMemberId(id);
     await deleteMember(id);
   }
-});
+}
 
 adminSaveStatusBtn.addEventListener("click", async () => {
   if (!selectedMemberId) return;
@@ -476,4 +537,31 @@ excelDownloadBtn.addEventListener("click", () => {
   a.click();
 
   URL.revokeObjectURL(url);
+});
+
+document.addEventListener("click", (e) => {
+  const moreBtn = e.target.closest(".more-btn");
+
+  if (moreBtn) {
+    const menu = moreBtn.nextElementSibling;
+
+    document
+      .querySelectorAll(".more-menu")
+      .forEach(item => {
+        if (item !== menu) {
+          item.classList.remove("open");
+        }
+      });
+
+    menu.classList.toggle("open");
+    return;
+  }
+
+  if (!e.target.closest(".more-menu")) {
+    document
+      .querySelectorAll(".more-menu")
+      .forEach(menu => {
+        menu.classList.remove("open");
+      });
+  }
 });

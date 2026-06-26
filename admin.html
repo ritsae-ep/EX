@@ -24,22 +24,30 @@
 					<select id="weekSelect">
 						<option value=""></option>
 					</select>
+					<button id="excelDownloadBtn">
+						<img src="./img/excel.png" class="btn-icon"> xls
+					</button>
 				</div>
 				<div class="search-box">
 					<i class="fa-solid fa-magnifying-glass"></i>
 					<input type="search" id="memberSearchInput" placeholder="닉네임 입력 시 자동 검색">
 				</div>
-				<div class="filter">
-					<button id="showAllBtn">전체</button>
-					<button id="showPendingBtn">승인대기</button>
-					<button id="showBanBtn">추방</button>
-					<button id="excelDownloadBtn">
-						<img src="./img/excel.png" class="btn-icon"> xls
-					</button>
-				</div>
 			</div>
 
-			<ul id="memberList"></ul>
+			<section class="admin-section">
+				<h2>🚨 관리 필요</h2>
+				<ul id="dangerMemberList"></ul>
+			</section>
+
+			<section class="admin-section">
+				<h2>승인 요청</h2>
+				<ul id="pendingMemberList"></ul>
+			</section>
+
+			<section class="admin-section">
+				<h2>전체 회원</h2>
+				<ul id="memberList"></ul>
+			</section>
 		</section>
 			
 		<!-- modal -->
@@ -64,8 +72,19 @@
 					<button type="button" class="modal-close" data-close-modal>
 						<i class="fa-solid fa-xmark"></i>
    					</button>
-					<h2>운동 인증 사진</h2>
+					<h3>운동 인증 사진</h3>
 					<div id="photoList"></div>
+				</div>
+			</div>
+
+			<div id="adminCheckModal" class="modal">
+				<div class="modal-content">
+					<button type="button" class="modal-close" data-close-modal>
+						<i class="fa-solid fa-xmark"></i>
+   					</button>
+					<h3 id="adminCheckTitle">인증 추가</h3>
+					<input type="date" id="adminCheckDate">
+					<button type="button" id="adminCheckSaveBtn">저장</button>
 				</div>
 			</div>
 		</div>

@@ -16,12 +16,52 @@
 		<strong id="welcomeText" class="header__user"></strong>
 		<div class="header__actions">
 			<button id="adminBtn" style="display:none;">관리자 페이지</button>
-			<button id="statusBtn">내 상태 변경</button>
-			<button id="checkBtn">운동 기록</button>
 			<button id="logoutBtn">로그아웃</button>
 		</div>
 	</header>
 	<main class="app">
+		<section class="my-dashboard">
+			<div class="my-dashboard__head">
+				<p id="myGreeting" class="my-dashboard__greeting"></p>
+				<span id="myStatusText" class="my-dashboard__status"></span>
+			</div>
+
+			<div class="my-dashboard__body">
+				<p class="my-dashboard__label">이번 주 운동</p>
+
+				<div class="my-dashboard__week">
+					<span>월</span>
+					<span>화</span>
+					<span>수</span>
+					<span>목</span>
+					<span>금</span>
+					<span>토</span>
+					<span>일</span>
+				</div>
+
+				<div id="myProgressDots" class="my-dashboard__dots"></div>
+
+				<strong id="myWeeklyCount" class="my-dashboard__count"></strong>
+				<p id="myGoalMessage" class="my-dashboard__message"></p>
+				<p class="my-dashboard__rule">주 3회 운동하면 이번 주 목표 달성입니다</p>
+			</div>
+
+			<div class="my-dashboard__today">
+				<p id="todayStatusText"></p>
+
+				<button id="todayCheckBtn" class="my-dashboard__main-btn">
+				오늘 운동 완료하기 💪
+				</button>
+
+				<button id="deleteTodayCheckBtn" class="my-dashboard__sub-btn" hidden>
+				기록 취소
+				</button>
+			</div>
+
+			<button id="statusBtn" class="my-dashboard__status-btn">
+			운동 어려워요
+			</button>
+		</section>
 		<section class="member-section">
 			<div class="member-section__head">
 				<div class="week-filter">
@@ -52,12 +92,22 @@
 						<i class="fa-solid fa-xmark"></i>
    					</button>
 					<p id="currentStatusText"></p>
-					<select id="statusSelect">
-						<option value="normal">없음</option>
-						<option value="busy">바쁨</option>
-						<option value="injured">부상</option>
-					</select>
-					<button id="saveStatusBtn">저장</button>
+					<div class="status-choice">
+						<button type="button" class="status-choice__btn" data-status="busy">
+							😵 바빠요
+						</button>
+
+						<button type="button" class="status-choice__btn" data-status="injured">
+							🤕 부상이에요
+						</button>
+
+						<button type="button" class="status-choice__btn" data-status="normal">
+							✅ 다시 정상 참여
+						</button>
+					</div>
+					<p class="status-choice__notice">
+						바쁨/부상 상태는 30일 동안 주 3회 기준에서 제외됩니다
+					</p>
 				</div>
 			</div>
 			
@@ -69,7 +119,6 @@
 					<p id="checkMessage"></p>
 					<input type="file" id="checkPhotoInput" accept="image/*">
 					<button id="saveCheckBtn">오늘 운동 완료</button>
-					<button id="deleteTodayCheckBtn">오늘 최근 기록 삭제</button>
 				</div>
 			</div>
 			

@@ -70,6 +70,16 @@ const welcomeText = document.querySelector("#welcomeText");
 const logoutBtn = document.querySelector("#logoutBtn");
 const adminBtn = document.querySelector("#adminBtn");
 
+const myGreeting = document.querySelector("#myGreeting");
+const myStatusText = document.querySelector("#myStatusText");
+const myProgressDots = document.querySelector("#myProgressDots");
+const myWeeklyCount = document.querySelector("#myWeeklyCount");
+const myGoalMessage = document.querySelector("#myGoalMessage");
+const todayStatusText = document.querySelector("#todayStatusText");
+
+const dashboardCheckBtn = document.querySelector("#todayCheckBtn");
+const dashboardDeleteCheckBtn = document.querySelector("#deleteTodayCheckBtn");
+
 const showAllBtn = document.querySelector("#showAllBtn");
 const showDangerBtn = document.querySelector("#showDangerBtn");
 
@@ -83,10 +93,9 @@ let isListening = false;
 
 const statusBtn = document.querySelector("#statusBtn");
 const statusModal = document.querySelector("#statusModal");
-const statusSelect = document.querySelector("#statusSelect");
-const saveStatusBtn = document.querySelector("#saveStatusBtn");
+const statusChoiceBtns = document.querySelectorAll(".status-choice__btn");
 
-const checkBtn = document.querySelector("#checkBtn");
+const checkBtn = dashboardCheckBtn;
 const checkModal = document.querySelector("#checkModal");
 const saveCheckBtn = document.querySelector("#saveCheckBtn");
 const checkPhotoInput = document.querySelector("#checkPhotoInput");
@@ -188,6 +197,15 @@ closeRankingBtn.addEventListener("click",()=>{
 async function getMembers() {
   const members = await getAllMembers();
   const checks = await getWeeklyChecks(selectedWeekKey);
+
+  const currentWeekChecks =
+    selectedWeekKey === getWeekKey()
+      ? checks
+      : await getWeeklyChecks(getWeekKey());
+
+  const todayCheck = currentMember
+    ? await getTodayCheck(currentMember.id, getTodayKey())
+    : null;
   
   const isCurrentWeek = selectedWeekKey === getWeekKey();
 
@@ -197,7 +215,10 @@ async function getMembers() {
   checks.forEach((check) => {
     countMap[check.memberId] = (countMap[check.memberId] || 0) + 1;
 
-    if (check.photoBase64) {
+    if (
+      check.dateKey === getTodayKey() &&
+      check.photoBase64
+    ) {
       photoMap[check.memberId] = check.photoBase64;
     }
   });
@@ -234,6 +255,7 @@ async function getMembers() {
   );
 
   memberData = mergedMembers;
+  renderMyDashboard(checks);
   applyFilters();
 }
 
@@ -251,8 +273,83 @@ memberSearchInput.addEventListener("input", () => {
   applyFilters();
 });
 
+function getDayIndexFromDateKey(dateKey) {
+  const day = new Date(dateKey).getDay();
+
+  // JS: 일 0, 월 1, 화 2 ...
+  // 화면: 월 0, 화 1, ... 일 6
+  return day === 0 ? 6 : day - 1;
+}
+
+function renderMyDashboard(checks) {
+  if (!currentMember) return;
+
+  const myChecks = checks.filter(
+    check => check.memberId === currentMember.id
+  );
+
+  const checkedDays = myChecks.map(check =>
+    getDayIndexFromDateKey(check.dateKey)
+  );
+
+  const myWeeklyCountValue = myChecks.length;
+  const leftCount = Math.max(3 - myWeeklyCountValue, 0);
+
+  const todayCheck = myChecks.find(
+    check => check.dateKey === getTodayKey()
+  );
+
+  myGreeting.textContent = `👋 ${currentMember.nickname}님`;
+
+  myStatusText.textContent =
+    currentMember.status === "normal"
+      ? "정상"
+      : statusLabel[currentMember.status];
+
+  myProgressDots.innerHTML = Array.from({ length: 7 }, (_, index) => {
+    return `
+      <span class="${checkedDays.includes(index) ? "is-filled" : ""}"></span>
+    `;
+  }).join("");
+
+  myWeeklyCount.textContent =
+    `이번 주 ${myWeeklyCountValue}회 완료`;
+
+  myGoalMessage.textContent =
+    leftCount === 0
+      ? "목표 3회 달성 🎯"
+      : `${leftCount}회 더 하면 목표 달성 🔥`;
+
+  const hasTodayCheck = myChecks.some(
+    check => check.dateKey === getTodayKey()
+  );
+
+  if (hasTodayCheck) {
+    todayStatusText.textContent = "✅ 오늘 운동 기록 완료";
+
+    dashboardCheckBtn.setAttribute("hidden", "");
+    dashboardDeleteCheckBtn.removeAttribute("hidden");
+  } else {
+    todayStatusText.textContent = "○ 오늘 아직 기록 안 함";
+
+    dashboardCheckBtn.removeAttribute("hidden");
+    dashboardDeleteCheckBtn.setAttribute("hidden", "");
+  }
+}
+
 function renderMembers(members) {
   memberList.innerHTML = members.map(member => {
+    const leftCount = Math.max(3 - member.weeklyCount, 0);
+
+    const countText =
+      leftCount === 0
+        ? `목표 달성 🎯`
+        : `${leftCount}회 남음`;
+
+    const dangerText =
+      member.isDanger
+        ? `<span class="member-card__hint">이번 주 목표까지 ${leftCount}회 남았어요</span>`
+        : "";
 
     const warningText =
       member.warningCount > 0
@@ -270,7 +367,7 @@ function renderMembers(members) {
         </span>
 
         <span>
-          ${member.weeklyCount}/3회
+          ${member.weeklyCount}회 · ${countText}
           ${
             member.photoBase64
               ? `<button 
@@ -281,6 +378,8 @@ function renderMembers(members) {
               : ""
           }
         </span>
+
+        ${dangerText}
         ${warningText}
       </li>
     `;
@@ -358,57 +457,58 @@ statusBtn.addEventListener("click",()=>{
     return;
   }
 
-  statusSelect.value = currentMember.status;
-
   renderCurrentStatus();
-
   statusModal.classList.add("open");
 });
 
-saveStatusBtn.addEventListener("click", async () => {
-  if (!currentMember) return;
+statusChoiceBtns.forEach((button) => {
+  button.addEventListener("click", async () => {
+    if (!currentMember) return;
 
-  const newStatus = statusSelect.value;
+    const newStatus = button.dataset.status;
 
-  if (newStatus === currentMember.status) {
-    alert("이미 같은 상태입니다.");
-    return;
-  }
-
-  if (
-    newStatus === "busy" &&
-    currentMember.canChangeStatus === false
-  ) {
-    alert("바쁨 상태는 운동 기록 1회 전까지 다시 변경할 수 없습니다.");
-    return;
-  }
-
-  const updateData = {
-    status: newStatus
-  };
-
-  if (newStatus === "normal") {
-    updateData.statusStartDate = null;
-    updateData.statusEndDate = null;
-  } else {
-    updateData.statusStartDate = serverTimestamp();
-    updateData.statusEndDate = getDateAfterDays(30);
-
-    if (newStatus === "busy") {
-      updateData.canChangeStatus = false;
+    if (newStatus === currentMember.status) {
+      alert("이미 같은 상태입니다.");
+      return;
     }
-  }
 
-  await updateMember(currentMember.id, updateData);
+    if (
+      newStatus === "busy" &&
+      currentMember.canChangeStatus === false
+    ) {
+      alert("바쁨 상태는 운동 기록 1회 전까지 다시 변경할 수 없습니다.");
+      return;
+    }
 
-  currentMember = {
-    ...currentMember,
-    ...updateData
-  };
+    const updateData = {
+      status: newStatus
+    };
 
-  alert("상태 변경 완료");
-  renderCurrentStatus();
-  statusModal.classList.remove("open");
+    if (newStatus === "normal") {
+      updateData.statusStartDate = null;
+      updateData.statusEndDate = null;
+    } else {
+      updateData.statusStartDate = serverTimestamp();
+      updateData.statusEndDate = getDateAfterDays(30);
+
+      if (newStatus === "busy") {
+        updateData.canChangeStatus = false;
+      }
+    }
+
+    await updateMember(currentMember.id, updateData);
+
+    currentMember = {
+      ...currentMember,
+      ...updateData
+    };
+
+    alert("상태 변경 완료");
+    renderCurrentStatus();
+    statusModal.classList.remove("open");
+
+    await getMembers();
+  });
 });
 
 function renderCurrentStatus(){
@@ -475,11 +575,13 @@ saveCheckBtn.addEventListener("click", async()=>{
 
   alert("운동 기록 완료");
   checkModal.classList.remove("open");
+  checkPhotoInput.value = "";
+
+  console.log("저장 완료");
+  await getMembers();
 });
 
-const deleteTodayCheckBtn = document.querySelector("#deleteTodayCheckBtn");
-
-deleteTodayCheckBtn.addEventListener("click", async () => {
+dashboardDeleteCheckBtn.addEventListener("click", async () => {
   if (!currentMember) return;
 
   const todayCheck = await getTodayCheck(
@@ -498,7 +600,7 @@ deleteTodayCheckBtn.addEventListener("click", async () => {
   await deleteCheck(todayCheck.id);
 
   alert("운동 기록 삭제 완료");
-  checkModal.classList.remove("open");
+  await getMembers();
 });
 
 logoutBtn.addEventListener("click", logout);

@@ -58,7 +58,7 @@ export async function addWarning(memberId, weekKey) {
   });
 }
 
-export async function addManualWarning(memberId) {
+export async function addAdminWarning(memberId) {
   await updateDoc(
     doc(db, "members", memberId),
     {
