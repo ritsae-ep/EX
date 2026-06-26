@@ -6,6 +6,7 @@ import {
   where,
   getDocs,
   addDoc,
+  updateDoc,
   deleteDoc,
   doc,
   deleteField,
@@ -15,7 +16,8 @@ import {
 
 import {
   getTodayKey,
-  getDateAfterDays
+  getDateAfterDays,
+  getWeekKeyByDate
 } from "../utils/date.js";
 
 export async function getWeeklyChecks(weekKey) {
@@ -118,4 +120,29 @@ export async function cleanupExpiredPhotos() {
       );
     }
   }
+}
+
+export async function addAdminCheck(member, dateKey) {
+  const q = query(
+    collection(db, "checks"),
+    where("memberId", "==", member.id),
+    where("dateKey", "==", dateKey)
+  );
+
+  const snapshot = await getDocs(q);
+
+  if (!snapshot.empty) {
+    throw new Error("이미 해당 날짜에 인증이 있습니다.");
+  }
+
+  await addDoc(collection(db, "checks"), {
+    memberId: member.id,
+    uid: member.uid || member.id,
+    nickname: member.nickname,
+    dateKey,
+    weekKey: getWeekKeyByDate(new Date(dateKey)),
+    imageUrl: null,
+    createdBy: "admin",
+    createdAt: serverTimestamp()
+  });
 }

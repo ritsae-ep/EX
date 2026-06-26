@@ -802,7 +802,7 @@ select {
     padding: 8px 10px;
     white-space: nowrap;
   }
-
+  
   #memberList li,
   .admin-page #memberList li {
     gap: 8px;

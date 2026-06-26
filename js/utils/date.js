@@ -8,7 +8,7 @@ export function getTodayKey() {
   return `${year}-${month}-${date}`;
 }
 
-function getWeekKeyByDate(date) {
+export function getWeekKeyByDate(date) {
   const firstDay = new Date(
     date.getFullYear(),
     0,

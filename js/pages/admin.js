@@ -19,10 +19,11 @@ import {
   updateMember,
   deleteMember,
   listenMembers,
-  addManualWarning
+  addadminWarning
 } from "../services/memberService.js";
 
 import {
+  addAdminCheck,
   getWeeklyChecks,
   deleteChecksByMemberId,
   listenWeeklyChecks
@@ -59,6 +60,11 @@ const adminStatusModal = document.querySelector("#adminStatusModal");
 const adminStatusTitle = document.querySelector("#adminStatusTitle");
 const adminStatusSelect = document.querySelector("#adminStatusSelect");
 const adminSaveStatusBtn = document.querySelector("#adminSaveStatusBtn");
+
+const adminCheckModal = document.querySelector("#adminCheckModal");
+const adminCheckTitle = document.querySelector("#adminCheckTitle");
+const adminCheckDate = document.querySelector("#adminCheckDate");
+const adminCheckSaveBtn = document.querySelector("#adminCheckSaveBtn");
 
 const photoModal = document.querySelector("#photoModal");
 const photoList = document.querySelector("#photoList");
@@ -244,13 +250,14 @@ function renderMembers(members){
           }
         </span>
         
-        
-
         <div class="member-warning">
           ${warningText}
         </div>
 
         <div class="member-actions">
+          <button type="button" class="admin-check-btn" data-id="${member.id}">
+            인증 추가
+          </button>
 
           <button 
             class="add-warning-btn"
@@ -302,7 +309,7 @@ function renderMembers(members){
             data-id="${member.id}"
             data-nickname="${member.nickname}"
             data-role="${member.role}">
-            삭제
+            추방
           </button>
         </div>
       </li>
@@ -313,6 +320,7 @@ function renderMembers(members){
 let selectedMemberId = null;
 let currentAdmin = null;
 let isListening = false;
+let selectedadminCheckMember = null;
 
 memberList.addEventListener("click", async(e)=>{
   const button = e.target.closest("button");
@@ -350,6 +358,28 @@ memberList.addEventListener("click", async(e)=>{
     return;
   }
 
+  if (button.classList.contains("admin-check-btn")) {
+    selectedadminCheckMember = {
+      id,
+      nickname
+    };
+
+    adminCheckTitle.textContent = `${nickname}님의 인증을 추가합니다`;
+
+    const today = new Date();
+    const todayKey = today.toISOString().slice(0, 10);
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    adminCheckDate.value = todayKey;
+    adminCheckDate.max = todayKey;
+    adminCheckDate.min = sevenDaysAgo.toISOString().slice(0, 10);
+
+    adminCheckModal.classList.add("open");
+    return;
+  }
+
   if (button.classList.contains("add-warning-btn")) {
     const ok = confirm(
       `${nickname} 회원에게 경고를 1회 부여할까요?`
@@ -357,7 +387,7 @@ memberList.addEventListener("click", async(e)=>{
 
     if (!ok) return;
 
-    await addManualWarning(id);
+    await addadminWarning(id);
 
     return;
   }

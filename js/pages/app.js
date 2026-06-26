@@ -197,7 +197,10 @@ async function getMembers() {
   checks.forEach((check) => {
     countMap[check.memberId] = (countMap[check.memberId] || 0) + 1;
 
-    if (check.photoBase64) {
+    if (
+      check.dateKey === getTodayKey() &&
+      check.photoBase64
+    ) {
       photoMap[check.memberId] = check.photoBase64;
     }
   });
