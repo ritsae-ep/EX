@@ -74,10 +74,42 @@ export function getWeeksOfMonth(year, month) {
   const weeks = [];
   const date = new Date(year, month - 1, 1);
 
-  while (date.getMonth() === month - 1) {
-    const weekKey = getWeekKeyByDate(date);
+  const today = new Date();
+  const currentWeekKey = getWeekKey();
 
-    if (!weeks.some(item => item.weekKey === weekKey)) {
+  while (date.getMonth() === month - 1) {
+    const firstDay = new Date(date.getFullYear(), 0, 1);
+
+    const pastDays = Math.floor(
+      (date - firstDay) / 86400000
+    );
+
+    const week = Math.ceil(
+      (pastDays + firstDay.getDay() + 1) / 7
+    );
+
+    const weekKey = `${date.getFullYear()}-W${week}`;
+
+    const isFutureMonth =
+      year > today.getFullYear() ||
+      (
+        year === today.getFullYear() &&
+        month > today.getMonth() + 1
+      );
+
+    const isCurrentMonth =
+      year === today.getFullYear() &&
+      month === today.getMonth() + 1;
+
+    const isFutureWeek =
+      isCurrentMonth &&
+      weekKey > currentWeekKey;
+
+    if (
+      !isFutureMonth &&
+      !isFutureWeek &&
+      !weeks.some(item => item.weekKey === weekKey)
+    ) {
       weeks.push({
         label: `${weeks.length + 1}주차`,
         weekKey

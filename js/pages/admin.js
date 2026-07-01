@@ -43,10 +43,6 @@ import {
 } from "../utils/modal.js";
 
 import {
-  initActiveButtons
-} from "../utils/button.js";
-
-import {
   getStatusText,
   getStatusClass
 } from "../utils/status.js";
@@ -212,126 +208,161 @@ function renderMembers(members) {
 
   dangerMemberList.innerHTML =
     needCareMembers.length
-      ? needCareMembers.map(renderAdminMemberItem).join("")
-      : `<li class="empty">관리 필요한 회원이 없습니다.</li>`;
+      ? needCareMembers.map(renderAdminMemberCard).join("")
+      : `<li class="admin-card admin-card--empty">관리 필요한 멤버가 없습니다.</li>`;
 
   pendingMemberList.innerHTML =
     pendingMembers.length
-      ? pendingMembers.map(renderAdminMemberItem).join("")
-      : `<li class="empty">승인 요청이 없습니다.</li>`;
+      ? pendingMembers.map(renderAdminMemberCard).join("")
+      : `<li class="admin-card admin-card--empty">승인 요청이 없습니다.</li>`;
 
   memberList.innerHTML =
     approvedMembers.length
-      ? approvedMembers.map(renderAdminMemberItem).join("")
-      : `<li class="empty">회원이 없습니다.</li>`;
+      ? approvedMembers.map(renderAdminMemberCard).join("")
+      : `<li class="admin-card admin-card--empty">멤버가 없습니다.</li>`;
 }
 
-function renderAdminMemberItem(member) {
+function renderAdminMemberCard(member) {
   const statusText = getStatusText(member);
 
-  const dangerBadge =
+  const badges = [
     member.isDanger
-      ? `<span class="admin-badge admin-badge--danger">⚠️ 기준 미달</span>`
-      : "";
+      ? `<span class="admin-card__badge" title="기준 미달">⚠️</span>`
+      : "",
+
+    (member.warningCount || 0) >= 2
+      ? `<span class="admin-card__badge" title="추방 후보">🔴</span>`
+      : "",
+
+    !member.approved
+      ? `<span class="admin-card__badge" title="승인 대기">🟡</span>`
+      : "",
+
+    member.photos.length > 0
+      ? `<button
+          type="button"
+          class="admin-card__badge admin-card__photo photo-view-btn"
+          title="인증 사진 보기"
+          data-id="${member.id}">
+          🖼️
+        </button>`
+      : "",
+
+    member.role === "admin"
+      ? `<span class="admin-card__badge" title="관리자">👑</span>`
+      : ""
+  ].join("");
 
   const warningText =
-  (member.warningCount || 0) >= 2
-    ? `<span class="warning warning--danger">
-         🔴 경고 ${member.warningCount}회 (추방 후보)
-       </span>`
-    : (member.warningCount || 0) > 0
-      ? `<span class="warning">
-           🟡 경고 ${member.warningCount}회
-         </span>`
+    (member.warningCount || 0) > 0
+      ? `<span class="admin-card__warning">
+          경고 ${member.warningCount}회
+        </span>`
       : "";
 
   const approveButton =
     !member.approved
-      ? `<button class="approve-btn" data-id="${member.id}">
+      ? `
+        <button
+          class="approve-btn admin-card__button admin-card__button--primary"
+          data-id="${member.id}"
+          data-nickname="${member.nickname}">
           승인
-        </button>`
+        </button>
+      `
       : "";
 
-   return `
-    <li class="${member.isDanger ? "is-danger" : ""}">
-      <div class="admin-member__info">
-        <strong>${member.nickname}</strong><br>
-        ${dangerBadge}
-        ${warningText}
+  return `
+    <li class="admin-card ${member.isDanger ? "is-danger" : ""}">
+      <div class="admin-card__top">
+        <div class="admin-card__name">
+          <strong>${member.nickname}</strong>
+          <div class="admin-card__badges">
+            ${badges}
+          </div>
+        </div>
       </div>
 
-      <span class="member-count">
-        ${member.weeklyCount}/3회
+      <div class="admin-card__body">
+        <div class="admin-card__meta">
+          <span>이번 주</span>
+          <strong>${member.weeklyCount}/3회</strong>
+        </div>
+
+        <div class="admin-card__meta">
+          <span>상태</span>
+          <strong class="${getStatusClass(member.status)}">
+            ${statusText}
+          </strong>
+        </div>
+
         ${
-          member.photos.length > 0
-            ? `<button
-                class="photo-view-btn"
-                data-id="${member.id}">
-                <i class="fa-regular fa-image"></i>
-              </button>`
+          warningText
+            ? `<div class="admin-card__meta">
+                <span>경고</span>
+                ${warningText}
+              </div>`
             : ""
         }
-      </span>
+      </div>
 
-      <span class="${getStatusClass(member.status)}">
-        ${statusText}
-      </span>
-
-      <div class="admin-actions">
+      <div class="admin-card__actions">
         ${approveButton}
 
         <button
-          class="admin-check-btn admin-action-btn admin-action-btn--primary"
+          class="admin-check-btn admin-card__button admin-card__button--primary"
           data-id="${member.id}"
           data-nickname="${member.nickname}">
           인증 추가
         </button>
 
         <button
-          class="force-status-btn admin-action-btn admin-action-btn--normal"
+          class="force-status-btn admin-card__button admin-card__button--normal"
           data-id="${member.id}"
           data-nickname="${member.nickname}"
           data-status="${member.status}">
           상태 변경
         </button>
 
-        <button
-          type="button"
-          class="more-btn admin-action-btn admin-action-btn--normal">
-          ⋮ 관리
-        </button>
-
-        <div class="more-menu">
+        <div class="admin-card__more">
           <button
-            class="add-warning-btn admin-action-btn admin-action-btn--warning"
-            data-id="${member.id}"
-            data-nickname="${member.nickname}">
-            경고 부여
+            type="button"
+            class="more-btn admin-card__button admin-card__button--normal">
+            ⋮ 관리
           </button>
 
-          <button
-            class="reset-warning-btn admin-action-btn admin-action-btn--warning"
-            data-id="${member.id}"
-            data-nickname="${member.nickname}">
-            경고 초기화
-          </button>
+          <div class="more-menu">
+            <button
+              class="add-warning-btn admin-card__button admin-card__button--warning"
+              data-id="${member.id}"
+              data-nickname="${member.nickname}">
+              경고 부여
+            </button>
 
-          <hr>
+            <button
+              class="reset-warning-btn admin-card__button admin-card__button--warning"
+              data-id="${member.id}"
+              data-nickname="${member.nickname}">
+              경고 초기화
+            </button>
 
-          <button
-            class="delete-btn admin-action-btn admin-action-btn--danger"
-            data-id="${member.id}"
-            data-nickname="${member.nickname}"
-            data-role="${member.role}">
-            회원 삭제
-          </button>
+            <hr>
 
-          <button
-            class="make-admin-btn admin-action-btn admin-action-btn--black"
-            data-id="${member.id}"
-            data-nickname="${member.nickname}">
-            관리자 임명
-          </button>
+            <button
+              class="delete-btn admin-card__button admin-card__button--danger"
+              data-id="${member.id}"
+              data-nickname="${member.nickname}"
+              data-role="${member.role}">
+              멤버 삭제
+            </button>
+
+            <button
+              class="make-admin-btn admin-card__button admin-card__button--black"
+              data-id="${member.id}"
+              data-nickname="${member.nickname}">
+              관리자 임명
+            </button>
+          </div>
         </div>
       </div>
     </li>
@@ -413,7 +444,7 @@ async function handleAdminAction(e) {
 
   if (button.classList.contains("add-warning-btn")) {
     const ok = confirm(
-      `${nickname} 회원에게 경고를 1회 부여할까요?`
+      `${nickname} 에게 경고를 1회 부여할까요?`
     );
 
     if (!ok) return;
@@ -425,7 +456,7 @@ async function handleAdminAction(e) {
 
   if (button.classList.contains("reset-warning-btn")) {
     const ok = confirm(
-      `${nickname} 회원 경고를 초기화할까요?`
+      `${nickname} 의 경고를 초기화할까요?`
     );
 
     if (!ok) return;
@@ -438,7 +469,7 @@ async function handleAdminAction(e) {
   }
 
   if (button.classList.contains("make-admin-btn")) {
-    const ok = confirm(`${nickname} 회원을 관리자로 임명할까요?`);
+    const ok = confirm(`${nickname} 을 관리자로 임명할까요?`);
 
     if (!ok) return;
 
@@ -461,7 +492,7 @@ async function handleAdminAction(e) {
       alert("관리자 계정은 삭제할 수 없습니다")
       return;
     }
-    const ok = confirm(`정말 ${nickname} 회원을 삭제할까요?`);
+    const ok = confirm(`정말 ${nickname} 을 삭제할까요?`);
 
     if (!ok) return;
 
@@ -469,6 +500,33 @@ async function handleAdminAction(e) {
     await deleteMember(id);
   }
 }
+
+adminCheckSaveBtn.addEventListener("click", async () => {
+  if (!selectedadminCheckMember) return;
+
+  const dateKey = adminCheckDate.value;
+
+  if (!dateKey) {
+    alert("인증 날짜를 선택해주세요.");
+    return;
+  }
+
+  try {
+    await addAdminCheck(
+      selectedadminCheckMember,
+      dateKey
+    );
+
+    selectedadminCheckMember = null;
+    adminCheckModal.classList.remove("open");
+
+    alert("인증을 추가했습니다.");
+
+    await getMembers();
+  } catch (error) {
+    alert(error.message || "인증 추가 중 오류가 발생했습니다.");
+  }
+});
 
 adminSaveStatusBtn.addEventListener("click", async () => {
   if (!selectedMemberId) return;
@@ -564,4 +622,10 @@ document.addEventListener("click", (e) => {
         menu.classList.remove("open");
       });
   }
+
+  const toggleBtn = e.target.closest(".admin-section__toggle");
+  if (!toggleBtn) return;
+
+  const panel = toggleBtn.closest(".admin-section");
+  panel.classList.toggle("is-open");
 });
