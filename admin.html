@@ -3,17 +3,19 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>관리자 페이지</title>
+	<title>관리자 | 운동기록지</title>
 
 	<link rel="stylesheet" href="./css/style.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body class="admin-page">
 	<header class="header">
-		<strong class="header__user">관리자 페이지</strong>
-		<div class="header__actions">
-			<a href="./index.html" class="btn">사용자 화면</a>
-			<button id="logoutBtn">로그아웃</button>
+		<div class="header__inner">
+			<strong class="header__user">관리하기</strong>
+			<div class="header__actions">
+				<a href="./index.html" class="btn">기록지</a>
+				<button id="logoutBtn">로그아웃</button>
+			</div>
 		</div>
 	</header>
 	<main class="app">
@@ -24,29 +26,40 @@
 					<select id="weekSelect">
 						<option value=""></option>
 					</select>
-					<button id="excelDownloadBtn">
-						<img src="./img/excel.png" class="btn-icon"> xls
+					<button id="excelDownloadBtn" title="엑셀 다운로드" aria-label="엑셀 다운로드">
+						<img src="./img/excel.png" class="btn-icon" alt="">
 					</button>
 				</div>
 				<div class="search-box">
-					<i class="fa-solid fa-magnifying-glass"></i>
 					<input type="search" id="memberSearchInput" placeholder="닉네임 입력 시 자동 검색">
 				</div>
 			</div>
 
-			<section class="admin-section">
-				<h2>🚨 관리 필요</h2>
-				<ul id="dangerMemberList"></ul>
+			<section class="admin-section is-open">
+				<button type="button" class="admin-section__toggle">
+					<span>🚨 관리 필요</span>
+				</button>
+				<div class="admin-section__body">
+					<ul id="dangerMemberList"></ul>
+				</div>
 			</section>
 
-			<section class="admin-section">
-				<h2>승인 요청</h2>
-				<ul id="pendingMemberList"></ul>
+			<section class="admin-section is-open">
+				<button type="button" class="admin-section__toggle">
+					<span>승인 요청</span>
+				</button>
+				<div class="admin-section__body">
+					<ul id="pendingMemberList"></ul>
+				</div>
 			</section>
 
-			<section class="admin-section">
-				<h2>전체 회원</h2>
-				<ul id="memberList"></ul>
+			<section class="admin-section is-open">
+				<button type="button" class="admin-section__toggle">
+					<span>전체 멤버</span>
+				</button>
+				<div class="admin-section__body">
+					<ul id="memberList"></ul>
+				</div>
 			</section>
 		</section>
 			

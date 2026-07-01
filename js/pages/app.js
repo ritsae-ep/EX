@@ -339,48 +339,47 @@ function renderMyDashboard(checks) {
 
 function renderMembers(members) {
   memberList.innerHTML = members.map(member => {
-    const leftCount = Math.max(3 - member.weeklyCount, 0);
-
-    const countText =
-      leftCount === 0
-        ? `목표 달성 🎯`
-        : `${leftCount}회 남음`;
-
-    const dangerText =
-      member.isDanger
-        ? `<span class="member-card__hint">이번 주 목표까지 ${leftCount}회 남았어요</span>`
-        : "";
+    const warningCount = member.warningCount || 0;
 
     const warningText =
-      member.warningCount > 0
-        ? `<span class="warning">
-             <img src="./img/warning.png" class="btn-icon"> ${member.warningCount}회
-           </span>`
+      warningCount >= 2
+        ? `<span class="member-card__meta member-card__warning--ban">
+            🚨 경고 ${warningCount}회
+          </span>`
+        : warningCount === 1
+          ? `<span class="member-card__meta member-card__warning">
+              ⚠️ 경고 ${warningCount}회
+            </span>`
+          : "";
+
+    const dangerBadge =
+      member.isDanger
+        ? `<span title="기준 미달">⚠️</span>`
         : "";
 
     return `
-      <li class="${member.isDanger ? "is-danger" : ""}">
-        <strong>${member.nickname}</strong>
+      <li class="member-card ${member.isDanger ? "is-danger" : ""}">
+        <div class="member-card__top">
+          <strong class="member-card__name">
+            ${member.nickname}
+          </strong>
 
-        <span class="${getStatusClass(member.realStatus)}">
-          ${member.displayStatus}
-        </span>
+          <div class="member-card__badges">
+            ${dangerBadge}
+          </div>
+        </div>
 
-        <span>
-          ${member.weeklyCount}회 · ${countText}
-          ${
-            member.photoBase64
-              ? `<button 
-                  class="photo-view-btn"
-                  data-photo="${member.photoBase64}">
-                  <i class="fa-regular fa-image"></i>
-                </button>`
-              : ""
-          }
-        </span>
+        <div class="member-card__body">
+          <span class="member-card__meta ${getStatusClass(member.status)}">
+            ${member.displayStatus}
+          </span>
 
-        ${dangerText}
-        ${warningText}
+          <span class="member-card__meta">
+            ${member.weeklyCount} / 3회
+          </span>
+
+          ${warningText}
+        </div>
       </li>
     `;
   }).join("");
@@ -444,7 +443,7 @@ onAuthStateChanged(auth, async (user) => {
     isListening = true;
   }
 
-  console.log("승인된 회원입니다.");
+  console.log("승인된 멤버입니다.");
 });
 
 adminBtn.addEventListener("click",()=>{
@@ -453,7 +452,7 @@ adminBtn.addEventListener("click",()=>{
 
 statusBtn.addEventListener("click",()=>{
   if (!currentMember) {
-    alert("회원 정보를 불러오는 중입니다.");
+    alert("멤버 정보를 불러오는 중입니다.");
     return;
   }
 

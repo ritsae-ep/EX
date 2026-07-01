@@ -13,10 +13,12 @@
 </head>
 <body>
 	<header class="header">
-		<strong id="welcomeText" class="header__user"></strong>
-		<div class="header__actions">
-			<button id="adminBtn" style="display:none;">관리자 페이지</button>
-			<button id="logoutBtn">로그아웃</button>
+		<div class="header__inner">
+			<strong id="welcomeText" class="header__user"></strong>
+			<div class="header__actions">
+				<button id="adminBtn" style="display:none;">관리</button>
+				<button id="logoutBtn">로그아웃</button>
+			</div>
 		</div>
 	</header>
 	<main class="app">
@@ -71,7 +73,6 @@
 					</select>
 				</div>
 				<div class="search-box">
-					<i class="fa-solid fa-magnifying-glass"></i>
 					<input type="search" id="memberSearchInput" placeholder="닉네임 입력 시 자동 검색">
 				</div>
 				<div class="filter">
