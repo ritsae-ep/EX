@@ -437,6 +437,7 @@ select {
 
   display: grid;
   gap: 12px;
+  align-content: start;
 
   margin: 10px 0;
   padding: 0;

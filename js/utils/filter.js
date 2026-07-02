@@ -28,15 +28,37 @@ export function filterMembers(
 
 
   if (keyword) {
-    const lowerKeyword =
-      keyword.toLowerCase();
+    result = result.filter(member => {
+      const nickname = member.nickname.toLowerCase();
+      const nicknameInitials = getInitials(member.nickname);
 
-    result = result.filter(member =>
-      member.nickname
-        .toLowerCase()
-        .includes(lowerKeyword)
-    );
+      return (
+        nickname.includes(keyword) ||
+        nicknameInitials.includes(keyword)
+      );
+    });
   }
 
   return result;
+}
+
+function getInitials(text) {
+  const CHO = [
+    "ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ",
+    "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ",
+    "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"
+  ];
+
+  return text
+    .split("")
+    .map(char => {
+      const code = char.charCodeAt(0) - 44032;
+
+      if (code < 0 || code > 11171) {
+        return char;
+      }
+
+      return CHO[Math.floor(code / 588)];
+    })
+    .join("");
 }
